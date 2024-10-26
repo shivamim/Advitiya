@@ -2,6 +2,7 @@ import os
 import platform
 import json
 import requests
+from langchain.llms import LlamaCpp
 from rich.prompt import Prompt
 from rich import print
 from rich.console import Console
@@ -151,31 +152,23 @@ def static_analysis(language_used: str, file_path: str) -> Panel:
 def main() -> None:
     """Main function to run the application."""
     clearscr()
-    banner = r"""
-       _____  __     __  ____  _    _  _______ 
-      / ____| \ \   / / / __ \| |  | |/ ____| |
-     | |       \ \_/ / | |  | | |  | | (___ | |
-     | |        \   /  | |  | | |  | |\___ \| |
-     | |____     | |   | |__| | |__| |____) |_|
-      \_____|    |_|    \____/ \____/|_____/ (_) 
-    """
-    contact_dev = r"""
+
+    contact_dev = """
     Email = imshivam077@gmail.com
     LinkedIn = https://www.linkedin.com/in/shivam-shukla-5500ba239
     """
 
-    help_menu = r"""
+    help_menu = """
     - clear_screen: Clears the console screen for better readability.
     - quit_bot: This is used to quit the chat application.
-    - bot_banner: Prints the default bot's banner.
     - contact_dev: Provides my contact information.
     - save_chat: Saves the current session's interactions.
     - help_menu: Lists chatbot commands.
     - vuln_analysis: Does a Vuln analysis using the scan data or log file.
     - static_code_analysis: Does a Static code analysis using the scan data or log file.
     """
-    console.print(Panel(Markdown(banner)), style="bold green")
-    console.print(Panel(Markdown(contact_dev)), style="bold blue"))
+    
+    console.print(Panel(Markdown(contact_dev)), style="bold blue")
     console.print(Panel(Markdown(help_menu)), style="bold yellow"))
 
 if __name__ == "__main__":
