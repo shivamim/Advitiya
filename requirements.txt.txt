@@ -1,8 +1,0 @@
-langchain
-llama-cpp-python
-python-dotenv
-huggingface-hub
-groq
-streamlit
-rich
-requests
