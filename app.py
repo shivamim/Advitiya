@@ -1,149 +1,267 @@
+import streamlit as st
 import os
-import platform
 import json
 import requests
-from rich.console import Console
-from rich.panel import Panel
-from rich.align import Align
-from rich import box
 from rich.markdown import Markdown
 from typing import Any
-import streamlit as st
+from dotenv import load_dotenv
+from groq import Groq
 
-# Load secrets from Streamlit
-API_KEY = st.secrets["api_key"]  # Your API key is stored in Streamlit secrets
-console = Console()
+# Load environment variables
+load_dotenv()
 
-chat_history = []
+# Initialize session state
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
 
-def clearscr() -> None:
-    """Clear the console screen based on the operating system."""
+def fetch_groq_response(prompt: str, api_key: str, model: str = "llama2-70b-4096") -> str:
+    """Fetch response from Groq API."""
     try:
-        osp = platform.system()
-        match osp:
-            case 'Darwin':
-                os.system("clear")
-            case 'Linux':
-                os.system("clear")
-            case 'Windows':
-                os.system("cls")
-    except Exception:
-        pass
+        client = Groq(api_key=api_key)
+        
+        # Call the Groq API
+        completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are Advitiya, an advanced AI security assistant powered by Llama 3."},
+                {"role": "user", "content": prompt}
+            ],
+            model=model,
+            temperature=0.7,
+            max_tokens=4096,
+            top_p=1,
+            stream=False
+        )
+        
+        return completion.choices[0].message.content
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-def fetch_model_response(prompt: str) -> str:
-    """Fetch the model's response based on the input prompt."""
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "prompt": prompt,
-        "temperature": 0.75,
-        "max_tokens": 3500,
-        "top_p": 1
-    }
-    
-    # Commented out the API endpoint for future use
-    # response = requests.post("https://your-api-endpoint.com", headers=headers, json=payload)
-    
-    # Simulated response for local testing
-    return f"Simulated response for: {prompt}"
+def save_chat_history():
+    """Save chat history to JSON file."""
+    with open('chat_history.json', 'w') as f:
+        json.dump(st.session_state.chat_history, f)
+    st.success("Chat history saved successfully!")
 
-def Print_AI_out(prompt: str) -> None:
-    """Display the AI output in a styled panel."""
-    global chat_history
-    out = fetch_model_response(prompt)
-    ai_out = Markdown(out)
-
-    # Display the output in a Streamlit-friendly way
-    st.markdown(f"**AI Output:**\n{out}")
-
-    # Store the output in chat history
-    save_data = {
-        "Query": str(prompt),
-        "AI Answer": str(out)
-    }
-    chat_history.append(save_data)
-
-def save_chat(chat_history: list[Any]) -> None:
-    """Save the chat history to a JSON file."""
-    with open('chat_history.json', 'w+') as f:
-        f.write(json.dumps(chat_history))
-
-def vuln_analysis(scan_type: str, file_path: str) -> None:
-    """Analyze vulnerabilities based on scan data."""
-    global chat_history
-    with open(file_path, "r") as f:
-        file_data = f.read()
-    
+def perform_static_analysis(language_used: str, file_data: str, api_key: str, model: str) -> str:
+    """Perform static code analysis."""
     instructions = """
-    You are a Universal Vulnerability Analyzer powered by the Llama3 model. Your main objective is to analyze any provided scan data or log data to identify potential vulnerabilities in the target system or network. 
-    Please provide the scan type and the scan data or log data that needs to be analyzed. 
-    """
-    data = f"""
-        Provide the scan type: {scan_type} 
-        Provide the scan data or log data that needs to be analyzed: {file_data}
-    """
-    prompt = f"[INST] <<SYS>> {instructions}<</SYS>> Data to be analyzed: {data} [/INST]"
+    As a code security expert, analyze the given programming file to identify:
+    1. Security vulnerabilities
+    2. Code quality issues
+    3. Potential bugs
+    4. Exposed sensitive information (API keys, credentials)
+    5. Security best practices violations
     
-    Print_AI_out(prompt)
+    Provide a detailed analysis with:
+    - Severity levels for each issue
+    - Code snippets highlighting problems
+    - Recommended fixes
+    - Security best practices
+    
+    Format the response in Markdown.
+    """
+    
+    analysis_prompt = f"""
+    {instructions}
+    
+    Language: {language_used}
+    
+    Code to analyze:
+    ```{language_used}
+    {file_data}
+    ```    
+    """
+    
+    return fetch_groq_response(analysis_prompt, api_key, model)
 
-def static_analysis(language_used: str, file_path: str) -> None:
-    """Perform static analysis on code files."""
-    global chat_history
-    with open(file_path, "r") as f:
-        file_data = f.read()
-    
+def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: str) -> str:
+    """Perform vulnerability analysis."""
     instructions = """
-        Analyze the given programming file details to identify and clearly report bugs, vulnerabilities, and syntax errors.
-        Additionally, search for potential exposure of sensitive information such as API keys, passwords, and usernames. Please provide result in Markdown.
-    """
-    data = f"""
-        - Programming Language: {language_used}
-        - File Name: {file_path}
-        - File Data: {file_data}
-    """
-    prompt = f"[INST] <<SYS>> {instructions}<</SYS>> Data to be analyzed: {data} [/INST]"
+    As a security vulnerability analyzer, examine the provided scan data to:
+    1. Identify all security vulnerabilities
+    2. Assess the risk level of each finding
+    3. Detect misconfigurations
+    4. Identify exposed sensitive information
+    5. Evaluate security controls
     
-    Print_AI_out(prompt)
-
-def main() -> None:
-    """Main function to run the application."""
-    clearscr()
-
-    contact_dev = """
-    Email = imshivam077@gmail.com
-    LinkedIn = https://www.linkedin.com/in/shivam-shukla-5500ba239
-    """
-
-    help_menu = """
-    - clear_screen: Clears the console screen for better readability.
-    - quit_bot: This is used to quit the chat application.
-    - contact_dev: Provides my contact information.
-    - save_chat: Saves the current session's interactions.
-    - help_menu: Lists chatbot commands.
-    - vuln_analysis: Does a Vuln analysis using the scan data or log file.
-    - static_code_analysis: Does a Static code analysis using the scan data or log file.
+    Provide a comprehensive report including:
+    - Executive summary
+    - Detailed findings
+    - Risk ratings
+    - Remediation steps
+    - Technical recommendations
+    
+    Format the response in Markdown.
     """
     
-    # Print the developer contact information and help menu
-    console.print(Panel(Markdown(contact_dev)), style="bold blue")
-    console.print(Panel(Markdown(help_menu)), style="bold yellow")
-
-    # Streamlit interface
-    st.title("AI Analysis Tool")
-    st.sidebar.title("Options")
+    analysis_prompt = f"""
+    {instructions}
     
-    if st.sidebar.button("Save Chat"):
-        save_chat(chat_history)
-        st.sidebar.success("Chat history saved!")
-
-    prompt = st.text_input("Enter your prompt:", placeholder="What do you want to analyze?")
+    Scan Type: {scan_type}
     
-    if st.button("Send"):
-        if prompt:
-            st.markdown(f"**User:** {prompt}")
-            Print_AI_out(prompt)
+    Scan Data:
+    ```    
+    {scan_data}
+    ```    
+    """
+    
+    return fetch_groq_response(analysis_prompt, api_key, model)
+
+def main():
+    # Page configuration with custom theme
+    st.set_page_config(
+        page_title="Advitiya AI", 
+        page_icon="🔐",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+
+    # Custom CSS
+    st.markdown("""
+        <style>
+        .main {
+            background-color: #f5f5f5;
+        }
+        .stTitle {
+            color: #1E3D59;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 24px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .stButton > button {
+            background-color: #1E3D59;
+            color: white;
+        }
+        .success {
+            background-color: #D4EDDA;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    
+    # Sidebar configuration
+    st.sidebar.title("⚙️ Configuration")
+    st.sidebar.markdown("---")
+    
+    # API Configuration
+    st.sidebar.header("API Configuration")
+    api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key here")
+    
+    # Model Selection
+    st.sidebar.header("Model Selection")
+    model = st.sidebar.selectbox(
+        "Select Model",
+        [
+            "llama2-70b-4096",
+            "mixtral-8x7b-32768",
+            "gemma-7b-it"
+        ],
+        help="Choose the AI model for analysis"
+    )
+    
+    if st.sidebar.button("💾 Save Chat History"):
+        save_chat_history()
+    
+    # Main title and description
+    st.title("🔐 Advitiya AI")
+    st.markdown("""
+    Welcome to Advitiya AI - Your Advanced Security Analysis Assistant powered by Llama 3
+    
+    Leveraging state-of-the-art language models through Groq's high-performance API for intelligent security analysis.
+    Select your analysis type below to begin your security assessment.
+    """)
+    
+    # Create tabs with icons
+    tab1, tab2, tab3 = st.tabs([
+        "💬 Interactive Chat", 
+        "🔍 Static Analysis", 
+        "🛡️ Vulnerability Analysis"
+    ])
+    
+    # Chat Tab
+    with tab1:
+        st.header("💬 Chat with Advitiya")
+        user_input = st.text_area(
+            "What would you like to know about security?",
+            help="Enter your security-related query here"
+        )
+        
+        col1, col2 = st.columns([1, 6])
+        with col1:
+            if st.button("Send 📤", key="chat_send", use_container_width=True):
+                if not api_key:
+                    st.error("⚠️ Please provide your Groq API Key in the sidebar.")
+                elif user_input:
+                    with st.spinner("🤔 Processing your query..."):
+                        response = fetch_groq_response(user_input, api_key, model)
+                        
+                        st.session_state.chat_history.append({
+                            "query": user_input,
+                            "response": response
+                        })
+                        
+                        st.markdown(response)
+    
+    # Static Analysis Tab
+    with tab2:
+        st.header("🔍 Static Code Analysis")
+        language = st.selectbox(
+            "Select Programming Language", 
+            ["Python", "JavaScript", "Java", "C++", "PHP", "Ruby", "Go", "Rust", "Other"]
+        )
+        code = st.text_area(
+            "Code for Analysis:",
+            height=200,
+            help="Paste your code here for security analysis"
+        )
+        
+        if st.button("🔎 Analyze Code", use_container_width=True):
+            if not api_key:
+                st.error("⚠️ Please provide your Groq API Key in the sidebar.")
+            elif code:
+                with st.spinner("🔍 Analyzing code for vulnerabilities..."):
+                    result = perform_static_analysis(language, code, api_key, model)
+                    st.markdown(result)
+    
+    # Vulnerability Analysis Tab
+    with tab3:
+        st.header("🛡️ Vulnerability Analysis")
+        scan_type = st.selectbox(
+            "Select Scan Type", 
+            ["Nmap", "Nikto", "OWASP ZAP", "Burp Suite", "Custom Log", "Network Scan", 
+             "Web Application Scan", "Container Scan", "Cloud Security Scan"]
+        )
+        scan_data = st.text_area(
+            "Scan Data:",
+            height=200,
+            help="Paste your scan results or log data here"
+        )
+        
+        if st.button("🔍 Analyze Vulnerabilities", use_container_width=True):
+            if not api_key:
+                st.error("⚠️ Please provide your Groq API Key in the sidebar.")
+            elif scan_data:
+                with st.spinner("🔍 Analyzing security vulnerabilities..."):
+                    result = perform_vuln_analysis(scan_type, scan_data, api_key, model)
+                    st.markdown(result)
+    
+    # Display chat history with improved styling
+    if st.session_state.chat_history:
+        st.sidebar.markdown("---")
+        st.sidebar.header("📚 Chat History")
+        for idx, chat in enumerate(reversed(st.session_state.chat_history)):
+            with st.sidebar.expander(f"Conversation {len(st.session_state.chat_history) - idx}"):
+                st.markdown("**🗣️ Query:**")
+                st.info(chat["query"])
+                st.markdown("**🤖 Response:**")
+                st.success(chat["response"])
 
 if __name__ == "__main__":
     main()
