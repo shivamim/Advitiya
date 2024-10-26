@@ -2,7 +2,6 @@ import os
 import platform
 import json
 import requests
-from langchain.llms import LlamaCpp
 from rich.prompt import Prompt
 from rich import print
 from rich.console import Console
@@ -152,7 +151,7 @@ def static_analysis(language_used: str, file_path: str) -> Panel:
 def main() -> None:
     """Main function to run the application."""
     clearscr()
-    banner = """
+    banner = r"""
        _____  __     __  ____  _    _  _______ 
       / ____| \ \   / / / __ \| |  | |/ ____| |
      | |       \ \_/ / | |  | | |  | | (___ | |
@@ -160,12 +159,12 @@ def main() -> None:
      | |____     | |   | |__| | |__| |____) |_|
       \_____|    |_|    \____/ \____/|_____/ (_) 
     """
-    contact_dev = """
+    contact_dev = r"""
     Email = imshivam077@gmail.com
     LinkedIn = https://www.linkedin.com/in/shivam-shukla-5500ba239
     """
 
-    help_menu = """
+    help_menu = r"""
     - clear_screen: Clears the console screen for better readability.
     - quit_bot: This is used to quit the chat application.
     - bot_banner: Prints the default bot's banner.
