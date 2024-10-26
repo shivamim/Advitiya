@@ -5,3 +5,4 @@ groq
 streamlit
 rich
 requests
+langchain-community
