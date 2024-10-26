@@ -168,8 +168,9 @@ def main() -> None:
     - static_code_analysis: Does a Static code analysis using the scan data or log file.
     """
     
+    # Print the developer contact information and help menu
     console.print(Panel(Markdown(contact_dev)), style="bold blue")
-    console.print(Panel(Markdown(help_menu)), style="bold yellow"))
+    console.print(Panel(Markdown(help_menu)), style="bold yellow")
 
 if __name__ == "__main__":
     main()
