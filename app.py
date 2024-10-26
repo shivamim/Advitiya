@@ -2,12 +2,8 @@ import os
 import platform
 import json
 import requests
-from langchain.llms import LlamaCpp
-from rich.prompt import Prompt
-from rich import print
 from rich.console import Console
 from rich.panel import Panel
-from rich.console import Group
 from rich.align import Align
 from rich import box
 from rich.markdown import Markdown
@@ -47,44 +43,39 @@ def fetch_model_response(prompt: str) -> str:
         "top_p": 1
     }
     
-    response = requests.post("https://your-api-endpoint.com", headers=headers, json=payload)
-    if response.status_code == 200:
-        return response.json().get("response", "")
-    else:
-        return f"Error: {response.status_code}, Message: {response.text}"
+    # Commented out the API endpoint for future use
+    # response = requests.post("https://your-api-endpoint.com", headers=headers, json=payload)
+    
+    # Simulated response for local testing
+    return f"Simulated response for: {prompt}"
 
-def Print_AI_out(prompt: str) -> Panel:
+def Print_AI_out(prompt: str) -> None:
     """Display the AI output in a styled panel."""
     global chat_history
     out = fetch_model_response(prompt)
     ai_out = Markdown(out)
-    message_panel = Panel(
-        Align.center(
-            Group("\n", Align.center(ai_out)),
-            vertical="middle",
-        ),
-        box=box.ROUNDED,
-        padding=(1, 2),
-        title="[b red]Advitiya AI output",
-        border_style="blue",
-    )
+
+    # Display the output in a Streamlit-friendly way
+    st.markdown(f"**AI Output:**\n{out}")
+
+    # Store the output in chat history
     save_data = {
         "Query": str(prompt),
         "AI Answer": str(out)
     }
     chat_history.append(save_data)
-    return message_panel
 
 def save_chat(chat_history: list[Any]) -> None:
     """Save the chat history to a JSON file."""
     with open('chat_history.json', 'w+') as f:
         f.write(json.dumps(chat_history))
 
-def vuln_analysis(scan_type: str, file_path: str) -> Panel:
+def vuln_analysis(scan_type: str, file_path: str) -> None:
     """Analyze vulnerabilities based on scan data."""
     global chat_history
     with open(file_path, "r") as f:
         file_data = f.read()
+    
     instructions = """
     You are a Universal Vulnerability Analyzer powered by the Llama3 model. Your main objective is to analyze any provided scan data or log data to identify potential vulnerabilities in the target system or network. 
     Please provide the scan type and the scan data or log data that needs to be analyzed. 
@@ -95,30 +86,14 @@ def vuln_analysis(scan_type: str, file_path: str) -> Panel:
     """
     prompt = f"[INST] <<SYS>> {instructions}<</SYS>> Data to be analyzed: {data} [/INST]"
     
-    out = fetch_model_response(prompt)
-    ai_out = Markdown(out)
-    message_panel = Panel(
-        Align.center(
-            Group("\n", Align.center(ai_out)),
-            vertical="middle",
-        ),
-        box=box.ROUNDED,
-        padding=(1, 2),
-        title="[b red]Advitiya AI output",
-        border_style="blue",
-    )
-    save_data = {
-        "Query": str(prompt),
-        "AI Answer": str(out)
-    }
-    chat_history.append(save_data)
-    return message_panel
+    Print_AI_out(prompt)
 
-def static_analysis(language_used: str, file_path: str) -> Panel:
+def static_analysis(language_used: str, file_path: str) -> None:
     """Perform static analysis on code files."""
     global chat_history
     with open(file_path, "r") as f:
         file_data = f.read()
+    
     instructions = """
         Analyze the given programming file details to identify and clearly report bugs, vulnerabilities, and syntax errors.
         Additionally, search for potential exposure of sensitive information such as API keys, passwords, and usernames. Please provide result in Markdown.
@@ -130,24 +105,7 @@ def static_analysis(language_used: str, file_path: str) -> Panel:
     """
     prompt = f"[INST] <<SYS>> {instructions}<</SYS>> Data to be analyzed: {data} [/INST]"
     
-    out = fetch_model_response(prompt)
-    ai_out = Markdown(out)
-    message_panel = Panel(
-        Align.center(
-            Group("\n", Align.center(ai_out)),
-            vertical="middle",
-        ),
-        box=box.ROUNDED,
-        padding=(1, 2),
-        title="[b red]Advitiya AI output",
-        border_style="blue",
-    )
-    save_data = {
-        "Query": str(prompt),
-        "AI Answer": str(out)
-    }
-    chat_history.append(save_data)
-    return message_panel
+    Print_AI_out(prompt)
 
 def main() -> None:
     """Main function to run the application."""
@@ -171,6 +129,21 @@ def main() -> None:
     # Print the developer contact information and help menu
     console.print(Panel(Markdown(contact_dev)), style="bold blue")
     console.print(Panel(Markdown(help_menu)), style="bold yellow")
+
+    # Streamlit interface
+    st.title("AI Analysis Tool")
+    st.sidebar.title("Options")
+    
+    if st.sidebar.button("Save Chat"):
+        save_chat(chat_history)
+        st.sidebar.success("Chat history saved!")
+
+    prompt = st.text_input("Enter your prompt:", placeholder="What do you want to analyze?")
+    
+    if st.button("Send"):
+        if prompt:
+            st.markdown(f"**User:** {prompt}")
+            Print_AI_out(prompt)
 
 if __name__ == "__main__":
     main()
