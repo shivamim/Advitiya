@@ -171,7 +171,7 @@ def main():
     
     # Main title and description
     st.title("🔐 Advitiya AI")
-    st.markdown("""Welcome to Advitiya AI - Your Advanced Security Analysis Assistant powered by Llama 3
+    st.markdown("""Welcome to Advitiya AI Developed By Shivam Shukla - Your Advanced Security Analysis Assistant powered by Llama 3
     
     Leveraging state-of-the-art language models through Groq's high-performance API for intelligent security analysis.
     Select your analysis type below to begin your security assessment.""")
