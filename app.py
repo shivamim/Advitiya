@@ -14,7 +14,7 @@ load_dotenv()
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-def fetch_groq_response(prompt: str, api_key: str, model: str = "llama2-70b-4096") -> str:
+def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
     """Fetch response from Groq API."""
     try:
         client = Groq(api_key=api_key)
@@ -35,6 +35,8 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama2-70b-4096
         return completion.choices[0].message.content
     except Exception as e:
         return f"Error: {str(e)}"
+
+# The rest of your code remains unchanged
 
 def save_chat_history():
     """Save chat history to JSON file."""
@@ -117,8 +119,7 @@ def main():
     )
 
     # Custom CSS
-    st.markdown("""
-        <style>
+    st.markdown("""<style>
         .main {
             background-color: #f5f5f5;
         }
@@ -143,8 +144,7 @@ def main():
             padding: 10px;
             border-radius: 5px;
         }
-        </style>
-        """, unsafe_allow_html=True)
+        </style>""", unsafe_allow_html=True)
     
     # Sidebar configuration
     st.sidebar.title("⚙️ Configuration")
@@ -159,7 +159,7 @@ def main():
     model = st.sidebar.selectbox(
         "Select Model",
         [
-            "llama2-70b-4096",
+            "llama3-8b-8192",
             "mixtral-8x7b-32768",
             "gemma-7b-it"
         ],
@@ -171,27 +171,18 @@ def main():
     
     # Main title and description
     st.title("🔐 Advitiya AI")
-    st.markdown("""
-    Welcome to Advitiya AI - Your Advanced Security Analysis Assistant powered by Llama 3
+    st.markdown("""Welcome to Advitiya AI - Your Advanced Security Analysis Assistant powered by Llama 3
     
     Leveraging state-of-the-art language models through Groq's high-performance API for intelligent security analysis.
-    Select your analysis type below to begin your security assessment.
-    """)
+    Select your analysis type below to begin your security assessment.""")
     
     # Create tabs with icons
-    tab1, tab2, tab3 = st.tabs([
-        "💬 Interactive Chat", 
-        "🔍 Static Analysis", 
-        "🛡️ Vulnerability Analysis"
-    ])
+    tab1, tab2, tab3 = st.tabs(["💬 Interactive Chat", "🔍 Static Analysis", "🛡️ Vulnerability Analysis"])
     
     # Chat Tab
     with tab1:
         st.header("💬 Chat with Advitiya")
-        user_input = st.text_area(
-            "What would you like to know about security?",
-            help="Enter your security-related query here"
-        )
+        user_input = st.text_area("What would you like to know about security?", help="Enter your security-related query here")
         
         col1, col2 = st.columns([1, 6])
         with col1:
@@ -202,25 +193,14 @@ def main():
                     with st.spinner("🤔 Processing your query..."):
                         response = fetch_groq_response(user_input, api_key, model)
                         
-                        st.session_state.chat_history.append({
-                            "query": user_input,
-                            "response": response
-                        })
-                        
+                        st.session_state.chat_history.append({"query": user_input, "response": response})
                         st.markdown(response)
     
     # Static Analysis Tab
     with tab2:
         st.header("🔍 Static Code Analysis")
-        language = st.selectbox(
-            "Select Programming Language", 
-            ["Python", "JavaScript", "Java", "C++", "PHP", "Ruby", "Go", "Rust", "Other"]
-        )
-        code = st.text_area(
-            "Code for Analysis:",
-            height=200,
-            help="Paste your code here for security analysis"
-        )
+        language = st.selectbox("Select Programming Language", ["Python", "JavaScript", "Java", "C++", "PHP", "Ruby", "Go", "Rust", "Other"])
+        code = st.text_area("Code for Analysis:", height=200, help="Paste your code here for security analysis")
         
         if st.button("🔎 Analyze Code", use_container_width=True):
             if not api_key:
@@ -233,16 +213,8 @@ def main():
     # Vulnerability Analysis Tab
     with tab3:
         st.header("🛡️ Vulnerability Analysis")
-        scan_type = st.selectbox(
-            "Select Scan Type", 
-            ["Nmap", "Nikto", "OWASP ZAP", "Burp Suite", "Custom Log", "Network Scan", 
-             "Web Application Scan", "Container Scan", "Cloud Security Scan"]
-        )
-        scan_data = st.text_area(
-            "Scan Data:",
-            height=200,
-            help="Paste your scan results or log data here"
-        )
+        scan_type = st.selectbox("Select Scan Type", ["Nmap", "Nikto", "OWASP ZAP", "Burp Suite", "Custom Log", "Network Scan", "Web Application Scan", "Container Scan", "Cloud Security Scan"])
+        scan_data = st.text_area("Scan Data:", height=200, help="Paste your scan results or log data here")
         
         if st.button("🔍 Analyze Vulnerabilities", use_container_width=True):
             if not api_key:
