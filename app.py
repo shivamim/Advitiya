@@ -114,6 +114,23 @@ def load_custom_css():
     <style>
         /* Import Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        /* 🔳 Futuristic Background */
+.stApp {
+    background: url("https://img.freepik.com/premium-vector/tech-grey-futuristic-abstract-background_42705913.jpg") no-repeat center center fixed;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+/* Overlay for readability */
+.block-container::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.8);  /* slight white layer */
+    z-index: -1;
+}
+
 
         /* Global Overrides */
         .main, .stApp, .block-container {
