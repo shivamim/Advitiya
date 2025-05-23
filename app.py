@@ -133,20 +133,21 @@ def load_custom_css():
         
         /* Header Styles */
         .main-header {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 2rem;
             margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
         
         .main-title {
             font-size: 3rem;
             font-weight: 700;
             color: #ffffff !important;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
             margin-bottom: 1rem;
         }
         
@@ -157,62 +158,159 @@ def load_custom_css():
             line-height: 1.6;
         }
         
-        /* Sidebar Styles */
-        .css-1d391kg {
-            background: linear-gradient(180deg, #2C3E50 0%, #34495E 100%);
+        /* Sidebar Styles - Black Theme */
+        .css-1d391kg, 
+        .css-17lntkn,
+        .css-1cypcdb {
+            background: linear-gradient(180deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%) !important;
+            border-right: 2px solid #333 !important;
         }
         
+        /* Sidebar Header */
         .sidebar-header {
-            color: #ECF0F1 !important;
+            color: #ffffff !important;
             font-weight: 600;
             font-size: 1.2rem;
             margin-bottom: 1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
         
-        /* Sidebar text colors */
+        /* Sidebar text colors - All text white */
         .css-1d391kg .stMarkdown, 
         .css-1d391kg .stMarkdown p, 
         .css-1d391kg .stMarkdown div,
         .css-1d391kg .stSelectbox label,
-        .css-1d391kg .stTextInput label {
-            color: #ECF0F1 !important;
+        .css-1d391kg .stTextInput label,
+        .css-1d391kg label,
+        .css-1d391kg .stMetric label,
+        .css-1d391kg .stMetric .metric-label,
+        .css-17lntkn .stMarkdown, 
+        .css-17lntkn .stMarkdown p, 
+        .css-17lntkn .stMarkdown div,
+        .css-17lntkn .stSelectbox label,
+        .css-17lntkn .stTextInput label,
+        .css-17lntkn label,
+        .css-1cypcdb .stMarkdown, 
+        .css-1cypcdb .stMarkdown p, 
+        .css-1cypcdb .stMarkdown div,
+        .css-1cypcdb .stSelectbox label,
+        .css-1cypcdb .stTextInput label,
+        .css-1cypcdb label {
+            color: #ffffff !important;
         }
         
         /* Sidebar input styling */
-        .css-1d391kg .stTextInput > div > div > input {
+        .css-1d391kg .stTextInput > div > div > input,
+        .css-17lntkn .stTextInput > div > div > input,
+        .css-1cypcdb .stTextInput > div > div > input {
             background: rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
+            color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 8px !important;
         }
         
-        .css-1d391kg .stSelectbox > div > div {
+        .css-1d391kg .stTextInput > div > div > input::placeholder,
+        .css-17lntkn .stTextInput > div > div > input::placeholder,
+        .css-1cypcdb .stTextInput > div > div > input::placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        /* Sidebar selectbox styling */
+        .css-1d391kg .stSelectbox > div > div,
+        .css-17lntkn .stSelectbox > div > div,
+        .css-1cypcdb .stSelectbox > div > div {
             background: rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 8px !important;
+        }
+        
+        .css-1d391kg .stSelectbox > div > div > div,
+        .css-17lntkn .stSelectbox > div > div > div,
+        .css-1cypcdb .stSelectbox > div > div > div {
+            color: #ffffff !important;
+            background: transparent !important;
+        }
+        
+        /* Sidebar buttons */
+        .css-1d391kg .stButton > button,
+        .css-17lntkn .stButton > button,
+        .css-1cypcdb .stButton > button {
+            background: linear-gradient(45deg, #333333, #555555) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+        }
+        
+        .css-1d391kg .stButton > button:hover,
+        .css-17lntkn .stButton > button:hover,
+        .css-1cypcdb .stButton > button:hover {
+            background: linear-gradient(45deg, #555555, #777777) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* Sidebar metrics */
+        .css-1d391kg .metric-container,
+        .css-17lntkn .metric-container,
+        .css-1cypcdb .metric-container {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 8px !important;
+            padding: 0.5rem !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .css-1d391kg .stMetric > div,
+        .css-17lntkn .stMetric > div,
+        .css-1cypcdb .stMetric > div {
+            color: #ffffff !important;
+        }
+        
+        .css-1d391kg .stMetric > div > div,
+        .css-17lntkn .stMetric > div > div,
+        .css-1cypcdb .stMetric > div > div {
+            color: #e8e8e8 !important;
+        }
+        
+        /* Sidebar expander */
+        .css-1d391kg .streamlit-expanderHeader,
+        .css-17lntkn .streamlit-expanderHeader,
+        .css-1cypcdb .streamlit-expanderHeader {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+        }
+        
+        .css-1d391kg .streamlit-expanderContent,
+        .css-17lntkn .streamlit-expanderContent,
+        .css-1cypcdb .streamlit-expanderContent {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border-radius: 8px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
         
         /* Tab Styles */
         .stTabs [data-baseweb="tab-list"] {
             gap: 2rem;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 15px;
             padding: 1rem;
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .stTabs [data-baseweb="tab"] {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             color: #ffffff !important;
             font-weight: 500;
             padding: 1rem 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
         }
         
         .stTabs [data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
             color: #ffffff !important;
         }
@@ -230,6 +328,41 @@ def load_custom_css():
         
         .stTabs [data-baseweb="tab-panel"] * {
             color: #ffffff !important;
+        }
+        
+        /* Main content dropdown fixes */
+        .stSelectbox > div > div {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        
+        .stSelectbox > div > div > div {
+            color: #2C3E50 !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Dropdown arrow and selection */
+        .stSelectbox > div > div svg {
+            color: #2C3E50 !important;
+        }
+        
+        /* Dropdown menu items */
+        .stSelectbox div[data-baseweb="select"] div[role="listbox"] {
+            background: #ffffff !important;
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        
+        .stSelectbox div[data-baseweb="select"] div[role="option"] {
+            color: #2C3E50 !important;
+            background: #ffffff !important;
+        }
+        
+        .stSelectbox div[data-baseweb="select"] div[role="option"]:hover {
+            background: #f0f0f0 !important;
+            color: #2C3E50 !important;
         }
         
         /* Button Styles */
@@ -252,10 +385,9 @@ def load_custom_css():
         
         /* Input Styles */
         .stTextInput > div > div > input,
-        .stTextArea > div > div > textarea,
-        .stSelectbox > div > div > select {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        .stTextArea > div > div > textarea {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-radius: 10px !important;
             color: #2C3E50 !important;
             backdrop-filter: blur(10px);
@@ -281,27 +413,14 @@ def load_custom_css():
             color: #ffffff !important;
         }
         
-        .stSelectbox > div > div > div {
-            color: #2C3E50 !important;
-            background: rgba(255, 255, 255, 0.95) !important;
-        }
-        
-        .stMetric > div {
-            color: #ffffff !important;
-        }
-        
-        .stMetric > div > div {
-            color: #e8e8e8 !important;
-        }
-        
-        /* Tab content text */
-        .stTabs > div > div > div > div {
-            color: #ffffff !important;
-        }
-        
-        /* Headers and labels */
+        /* Labels and headers */
         h1, h2, h3, h4, h5, h6 {
             color: #ffffff !important;
+        }
+        
+        label {
+            color: #ffffff !important;
+            font-weight: 500 !important;
         }
         
         .stExpander > div > div > div {
@@ -309,7 +428,7 @@ def load_custom_css():
         }
         
         /* All text elements */
-        p, div, span, label, .stText {
+        p, div, span, .stText {
             color: #ffffff !important;
         }
         
@@ -340,13 +459,13 @@ def load_custom_css():
         
         /* Card Styles */
         .analysis-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 2rem;
             margin: 1rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
         
         .analysis-card h1, 
@@ -380,11 +499,7 @@ def load_custom_css():
             color: #ffffff !important;
         }
         
-        /* Labels and help text */
-        label {
-            color: #ffffff !important;
-        }
-        
+        /* Help text */
         .stHelp {
             color: #e8e8e8 !important;
         }
@@ -536,9 +651,9 @@ def display_model_info(model):
     if model in model_info:
         info = model_info[model]
         st.sidebar.markdown(f"""
-        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin: 1rem 0;">
+        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin: 1rem 0; border: 1px solid rgba(255,255,255,0.2);">
             <h4 style="color: #4ECDC4; margin-bottom: 0.5rem;">🤖 {info['name']}</h4>
-            <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 0.5rem;">{info['description']}</p>
+            <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; margin-bottom: 0.5rem;">{info['description']}</p>
             <p style="color: #FF6B6B; font-size: 0.8rem; font-weight: 600;">Best for: {info['best_for']}</p>
         </div>
         """, unsafe_allow_html=True)
@@ -645,7 +760,7 @@ def main():
                 st.success("Chat history cleared!")
         
         st.markdown('</div>', unsafe_allow_html=True)
-    
+
     # Static Analysis Tab
     with tab2:
         st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
