@@ -153,10 +153,32 @@ def load_custom_css():
         }
         
         .sidebar-header {
-            color: #ECF0F1;
+            color: #ECF0F1 !important;
             font-weight: 600;
             font-size: 1.2rem;
             margin-bottom: 1rem;
+        }
+        
+        /* Sidebar text colors */
+        .css-1d391kg .stMarkdown, 
+        .css-1d391kg .stMarkdown p, 
+        .css-1d391kg .stMarkdown div,
+        .css-1d391kg .stSelectbox label,
+        .css-1d391kg .stTextInput label {
+            color: #ECF0F1 !important;
+        }
+        
+        /* Sidebar input styling */
+        .css-1d391kg .stTextInput > div > div > input {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        }
+        
+        .css-1d391kg .stSelectbox > div > div {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
         }
         
         /* Tab Styles */
@@ -210,16 +232,66 @@ def load_custom_css():
         .stTextInput > div > div > input,
         .stTextArea > div > div > textarea,
         .stSelectbox > div > div > select {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            color: white;
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 10px !important;
+            color: #2C3E50 !important;
             backdrop-filter: blur(10px);
         }
         
         .stTextInput > div > div > input::placeholder,
         .stTextArea > div > div > textarea::placeholder {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(0, 0, 0, 0.6) !important;
+        }
+        
+        /* Fix text visibility in all components */
+        .stMarkdown, .stMarkdown p, .stMarkdown div {
+            color: white !important;
+        }
+        
+        .stSelectbox > div > div > div {
+            color: #2C3E50 !important;
+        }
+        
+        .stMetric > div {
+            color: white !important;
+        }
+        
+        .stMetric > div > div {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        /* Tab content text */
+        .stTabs > div > div > div > div {
+            color: white !important;
+        }
+        
+        /* Headers and labels */
+        h1, h2, h3, h4, h5, h6 {
+            color: white !important;
+        }
+        
+        .stExpander > div > div > div {
+            color: white !important;
+        }
+        
+        /* Info and success boxes */
+        .stInfo > div {
+            background: rgba(76, 175, 80, 0.2) !important;
+            color: white !important;
+            border: 1px solid rgba(76, 175, 80, 0.5) !important;
+        }
+        
+        .stSuccess > div {
+            background: rgba(76, 175, 80, 0.3) !important;
+            color: white !important;
+            border: 1px solid rgba(76, 175, 80, 0.6) !important;
+        }
+        
+        .stError > div {
+            background: rgba(244, 67, 54, 0.3) !important;
+            color: white !important;
+            border: 1px solid rgba(244, 67, 54, 0.6) !important;
         }
         
         /* Card Styles */
@@ -231,6 +303,46 @@ def load_custom_css():
             margin: 1rem 0;
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .analysis-card h1, 
+        .analysis-card h2, 
+        .analysis-card h3, 
+        .analysis-card h4, 
+        .analysis-card h5, 
+        .analysis-card h6,
+        .analysis-card p,
+        .analysis-card div,
+        .analysis-card span,
+        .analysis-card li {
+            color: white !important;
+        }
+        
+        /* Ensure all text in main content area is white */
+        .main .block-container {
+            color: white !important;
+        }
+        
+        .main .block-container * {
+            color: white !important;
+        }
+        
+        /* Override any dark text */
+        .stMarkdown {
+            color: white !important;
+        }
+        
+        .stMarkdown * {
+            color: white !important;
+        }
+        
+        /* Labels and help text */
+        label {
+            color: white !important;
+        }
+        
+        .stHelp {
+            color: rgba(255, 255, 255, 0.8) !important;
         }
         
         /* Animation Classes */
