@@ -109,159 +109,224 @@ def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: s
     return fetch_groq_response(analysis_prompt, api_key, model)
 
 def load_custom_css():
+    """Load custom CSS with white background and black text, keeping design & animations intact."""
     st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&display=swap');
+        /* Import Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-        /* Base */
+        /* Global Overrides */
         .main, .stApp, .block-container {
             background: #ffffff !important;
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'Poppins', sans-serif;
             color: #000000 !important;
         }
 
-        /* Hero Header */
+        /* Header Section */
+        .main-header {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
         .main-title {
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 700;
-            background: linear-gradient(90deg, #ff6ec4, #7873f5, #4cd3c2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 5s ease infinite;
+            color: #000000 !important;
+            text-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
         }
 
         .main-subtitle {
-            font-size: 1.3rem;
-            color: #333333 !important;
-            font-weight: 400;
+            font-size: 1.2rem;
+            color: #333 !important;
+            font-weight: 300;
+            line-height: 1.6;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Sidebar */
+        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
+            background: #f9f9f9 !important;
+            color: #000000 !important;
+            border-right: 1px solid #ddd;
         }
 
-        /* Glass Panels */
-        .analysis-card {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 18px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            backdrop-filter: blur(25px);
-            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-            transition: all 0.3s ease-in-out;
-        }
-
-        /* Tabs */
-        .stTabs [data-baseweb="tab-list"] {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(12px);
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            padding: 0.6rem;
-        }
-
-        .stTabs [data-baseweb="tab"] {
-            border-radius: 10px;
-            padding: 0.7rem 1.5rem;
+        .sidebar-header {
+            color: #000000 !important;
             font-weight: 600;
-            color: #333;
-            transition: 0.3s;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
         }
 
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(45deg, #4cd3c2, #7873f5);
-            color: #ffffff !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(to right, #5efce8, #736efe);
-            color: white;
-            font-weight: 700;
-            padding: 0.7rem 2.2rem;
-            border-radius: 30px;
-            font-size: 1rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .stButton > button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        /* Text Everywhere */
+        h1, h2, h3, h4, h5, h6, p, span, div, label,
+        .stMarkdown, .stMarkdown *, .stText, .stHelp,
+        .stTabs [data-baseweb="tab-panel"] * {
+            color: #000000 !important;
         }
 
         /* Inputs */
         .stTextInput input, .stTextArea textarea {
-            background: rgba(255,255,255,0.9) !important;
+            background: #f9f9f9 !important;
+            color: #000000 !important;
             border: 1px solid #ccc !important;
-            border-radius: 10px;
-            padding: 0.6rem;
-            color: #000 !important;
+            border-radius: 8px !important;
         }
 
         .stTextInput input::placeholder, .stTextArea textarea::placeholder {
             color: #888 !important;
         }
 
-        /* Dropdowns */
+        /* Selectboxes */
+        .stSelectbox > div > div {
+            background: #ffffff !important;
+            border: 1px solid #ccc !important;
+            border-radius: 8px !important;
+        }
+
         .stSelectbox > div > div > div {
             color: #000000 !important;
             background: #ffffff !important;
         }
 
+        .stSelectbox div[data-baseweb="select"] div[role="option"] {
+            color: #000000 !important;
+            background: #ffffff !important;
+        }
+
         .stSelectbox div[data-baseweb="select"] div[role="option"]:hover {
-            background: #e3f2fd !important;
+            background: #eaeaea !important;
+            color: #000000 !important;
         }
 
-        /* Code blocks */
-        code, pre {
-            background: #1f1f1f;
-            color: #00ffd5;
-            font-family: monospace;
-            font-size: 0.9rem;
-            padding: 0.7rem;
-            border-radius: 10px;
-            box-shadow: inset 0 0 10px rgba(0,255,255,0.1);
+        /* Buttons */
+        .stButton > button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        /* Metrics / alerts */
-        .stSuccess > div, .stInfo > div, .stError > div, .stWarning > div {
-            border-radius: 10px;
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"] {
+            background: #f0f0f0;
+            border-radius: 15px;
             padding: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            background: #ffffff;
+            border-radius: 10px;
+            color: #000000 !important;
+            font-weight: 500;
+            padding: 1rem 2rem;
+            border: 1px solid #ccc;
+            transition: all 0.3s ease;
+        }
+
+        .stTabs [data-baseweb="tab"]:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+        }
+
+        .stTabs [aria-selected="true"] {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4) !important;
+            color: #ffffff !important;
+            border: none;
+        }
+
+        /* Cards */
+        .analysis-card {
+            background: #fefefe;
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Messages */
+        .stInfo > div {
+            background: #e6f3ff !important;
             color: #000 !important;
+            border: 1px solid #91c4e3 !important;
         }
 
-        .stInfo > div { background: #e0f7fa !important; }
-        .stSuccess > div { background: #e8f5e9 !important; }
-        .stError > div { background: #ffebee !important; }
-        .stWarning > div { background: #fff3e0 !important; }
-
-        /* Spinner */
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 6px solid #e0e0e0;
-            border-top: 6px solid #4cd3c2;
-            border-radius: 50%;
-            animation: spin 1s ease infinite;
+        .stSuccess > div {
+            background: #e6ffe6 !important;
+            color: #000 !important;
+            border: 1px solid #9dd69d !important;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .stError > div {
+            background: #ffe6e6 !important;
+            color: #000 !important;
+            border: 1px solid #e29999 !important;
         }
 
-        /* Responsive tweaks */
+        .stWarning > div {
+            background: #fff8e6 !important;
+            color: #000 !important;
+            border: 1px solid #ebcd85 !important;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Nice glow on headers */
+        h1, h2, h3 {
+            text-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        /* Responsive tweak */
         @media (max-width: 768px) {
-            .main-title { font-size: 2rem; }
-            .main-subtitle { font-size: 1rem; }
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .main-subtitle {
+                font-size: 1rem;
+            }
+
+            .stTabs [data-baseweb="tab-list"] {
+                gap: 1rem;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
-
 
 
 def display_hero_section():
