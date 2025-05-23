@@ -117,32 +117,42 @@ def load_custom_css():
         
         /* Global Styles */
         .main {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+        }
+        
+        /* Streamlit default styling overrides */
+        .stApp {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .block-container {
+            background: transparent;
         }
         
         /* Header Styles */
         .main-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 2rem;
             margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
         }
         
         .main-title {
             font-size: 3rem;
             font-weight: 700;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #ffffff !important;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
             margin-bottom: 1rem;
         }
         
         .main-subtitle {
             font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
+            color: #e8e8e8 !important;
             font-weight: 300;
             line-height: 1.6;
         }
@@ -184,30 +194,42 @@ def load_custom_css():
         /* Tab Styles */
         .stTabs [data-baseweb="tab-list"] {
             gap: 2rem;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 1rem;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .stTabs [data-baseweb="tab"] {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 10px;
-            color: white;
+            color: #ffffff !important;
             font-weight: 500;
             padding: 1rem 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             transition: all 0.3s ease;
         }
         
         .stTabs [data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
+            color: #ffffff !important;
         }
         
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4) !important;
             border: none;
+            color: #ffffff !important;
+        }
+        
+        /* Tab content styling */
+        .stTabs [data-baseweb="tab-panel"] {
+            color: #ffffff !important;
+        }
+        
+        .stTabs [data-baseweb="tab-panel"] * {
+            color: #ffffff !important;
         }
         
         /* Button Styles */
@@ -245,64 +267,86 @@ def load_custom_css():
         }
         
         /* Fix text visibility in all components */
-        .stMarkdown, .stMarkdown p, .stMarkdown div {
-            color: white !important;
+        .stMarkdown, 
+        .stMarkdown p, 
+        .stMarkdown div,
+        .stMarkdown span,
+        .stMarkdown li,
+        .stMarkdown h1,
+        .stMarkdown h2,
+        .stMarkdown h3,
+        .stMarkdown h4,
+        .stMarkdown h5,
+        .stMarkdown h6 {
+            color: #ffffff !important;
         }
         
         .stSelectbox > div > div > div {
             color: #2C3E50 !important;
+            background: rgba(255, 255, 255, 0.95) !important;
         }
         
         .stMetric > div {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         .stMetric > div > div {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: #e8e8e8 !important;
         }
         
         /* Tab content text */
         .stTabs > div > div > div > div {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         /* Headers and labels */
         h1, h2, h3, h4, h5, h6 {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         .stExpander > div > div > div {
-            color: white !important;
+            color: #ffffff !important;
+        }
+        
+        /* All text elements */
+        p, div, span, label, .stText {
+            color: #ffffff !important;
         }
         
         /* Info and success boxes */
         .stInfo > div {
-            background: rgba(76, 175, 80, 0.2) !important;
-            color: white !important;
-            border: 1px solid rgba(76, 175, 80, 0.5) !important;
+            background: rgba(33, 150, 243, 0.2) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(33, 150, 243, 0.5) !important;
         }
         
         .stSuccess > div {
-            background: rgba(76, 175, 80, 0.3) !important;
-            color: white !important;
-            border: 1px solid rgba(76, 175, 80, 0.6) !important;
+            background: rgba(76, 175, 80, 0.2) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(76, 175, 80, 0.5) !important;
         }
         
         .stError > div {
-            background: rgba(244, 67, 54, 0.3) !important;
-            color: white !important;
-            border: 1px solid rgba(244, 67, 54, 0.6) !important;
+            background: rgba(244, 67, 54, 0.2) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(244, 67, 54, 0.5) !important;
+        }
+        
+        .stWarning > div {
+            background: rgba(255, 152, 0, 0.2) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 152, 0, 0.5) !important;
         }
         
         /* Card Styles */
         .analysis-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 2rem;
             margin: 1rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         .analysis-card h1, 
@@ -315,34 +359,45 @@ def load_custom_css():
         .analysis-card div,
         .analysis-card span,
         .analysis-card li {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         /* Ensure all text in main content area is white */
         .main .block-container {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         .main .block-container * {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         /* Override any dark text */
         .stMarkdown {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         .stMarkdown * {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         /* Labels and help text */
         label {
-            color: white !important;
+            color: #ffffff !important;
         }
         
         .stHelp {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: #e8e8e8 !important;
+        }
+        
+        /* Text areas and inputs inside cards */
+        .analysis-card .stTextArea textarea {
+            color: #2C3E50 !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+        }
+        
+        .analysis-card .stTextInput input {
+            color: #2C3E50 !important;
+            background: rgba(255, 255, 255, 0.95) !important;
         }
         
         /* Animation Classes */
