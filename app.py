@@ -109,37 +109,35 @@ def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: s
     return fetch_groq_response(analysis_prompt, api_key, model)
 
 def load_custom_css():
-    """Load custom CSS with white background and black text, keeping design & animations intact."""
     st.markdown("""
     <style>
-        /* Import Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
 
-        /* Global Overrides */
+        /* GLOBAL BASE */
         .main, .stApp, .block-container {
             background: #ffffff !important;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             color: #000000 !important;
         }
 
-        /* Header Section */
+        /* HEADER - Neon Glow */
         .main-header {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 2rem;
             margin-bottom: 2rem;
             border: 1px solid rgba(0, 0, 0, 0.1);
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
         }
 
         .main-title {
             font-size: 3rem;
             font-weight: 700;
-            color: #000000 !important;
-            text-shadow: 1px 1px 6px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
+            color: #0ff;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+            animation: neonPulse 2s infinite;
         }
 
         .main-subtitle {
@@ -149,28 +147,66 @@ def load_custom_css():
             line-height: 1.6;
         }
 
-        /* Sidebar */
-        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
-            background: #f9f9f9 !important;
-            color: #000000 !important;
-            border-right: 1px solid #ddd;
+        @keyframes neonPulse {
+            0%, 100% { text-shadow: 0 0 10px #0ff, 0 0 20px #0ff; }
+            50% { text-shadow: 0 0 20px #0ff, 0 0 30px #0ff; }
         }
 
-        .sidebar-header {
-            color: #000000 !important;
+        /* GLASSMORPHIC CARDS */
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* FLOATING BUTTONS */
+        .stButton > button {
+            background: linear-gradient(90deg, #4ECDC4, #556270);
+            color: white;
             font-weight: 600;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 30px;
+            padding: 0.75rem 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: 0.3s ease-in-out;
         }
 
-        /* Text Everywhere */
-        h1, h2, h3, h4, h5, h6, p, span, div, label,
-        .stMarkdown, .stMarkdown *, .stText, .stHelp,
-        .stTabs [data-baseweb="tab-panel"] * {
+        .stButton > button:hover {
+            transform: translateY(-3px) scale(1.03) rotate(-0.5deg);
+            box-shadow: 0 8px 24px rgba(0,255,255,0.5);
+        }
+
+        /* FUTURISTIC TABS */
+        .stTabs [data-baseweb="tab-list"] {
+            background: rgba(240, 240, 240, 0.9);
+            border-radius: 15px;
+            padding: 1rem;
+            border: 1px solid #ccc;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            background: #ffffff;
+            border-radius: 12px;
             color: #000000 !important;
+            font-weight: 500;
+            padding: 1rem 2rem;
+            border: 2px solid transparent;
+            transition: 0.3s ease;
         }
 
-        /* Inputs */
+        .stTabs [aria-selected="true"] {
+            border-image: linear-gradient(45deg, #FF6B6B, #4ECDC4) 1;
+            color: #000000 !important;
+            background: #ffffff;
+        }
+
+        /* INPUTS & TEXTAREAS */
         .stTextInput input, .stTextArea textarea {
             background: #f9f9f9 !important;
             color: #000000 !important;
@@ -182,13 +218,7 @@ def load_custom_css():
             color: #888 !important;
         }
 
-        /* Selectboxes */
-        .stSelectbox > div > div {
-            background: #ffffff !important;
-            border: 1px solid #ccc !important;
-            border-radius: 8px !important;
-        }
-
+        /* SELECTBOX OPTIONS */
         .stSelectbox > div > div > div {
             color: #000000 !important;
             background: #ffffff !important;
@@ -201,67 +231,35 @@ def load_custom_css():
 
         .stSelectbox div[data-baseweb="select"] div[role="option"]:hover {
             background: #eaeaea !important;
-            color: #000000 !important;
         }
 
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        /* CODE BLOCKS */
+        code, pre {
+            background: #0f172a;
+            color: #00e6e6;
+            font-family: 'Courier New', monospace;
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: block;
         }
 
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        /* LOADING SPINNER */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #eee;
+            border-top: 4px solid #4ECDC4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
 
-        /* Tabs */
-        .stTabs [data-baseweb="tab-list"] {
-            background: #f0f0f0;
-            border-radius: 15px;
-            padding: 1rem;
-            border: 1px solid #ddd;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .stTabs [data-baseweb="tab"] {
-            background: #ffffff;
-            border-radius: 10px;
-            color: #000000 !important;
-            font-weight: 500;
-            padding: 1rem 2rem;
-            border: 1px solid #ccc;
-            transition: all 0.3s ease;
-        }
-
-        .stTabs [data-baseweb="tab"]:hover {
-            background: #f5f5f5;
-            transform: translateY(-2px);
-        }
-
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4) !important;
-            color: #ffffff !important;
-            border: none;
-        }
-
-        /* Cards */
-        .analysis-card {
-            background: #fefefe;
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 1rem 0;
-            border: 1px solid #eee;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        /* Messages */
+        /* ALERT BOXES */
         .stInfo > div {
             background: #e6f3ff !important;
             color: #000 !important;
@@ -286,44 +284,11 @@ def load_custom_css():
             border: 1px solid #ebcd85 !important;
         }
 
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* Nice glow on headers */
-        h1, h2, h3 {
-            text-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-
-        /* Responsive tweak */
+        /* RESPONSIVE HEADER */
         @media (max-width: 768px) {
-            .main-title {
-                font-size: 2rem;
-            }
-
-            .main-subtitle {
-                font-size: 1rem;
-            }
-
-            .stTabs [data-baseweb="tab-list"] {
-                gap: 1rem;
-            }
+            .main-title { font-size: 2rem; }
+            .main-subtitle { font-size: 1rem; }
+            .stTabs [data-baseweb="tab-list"] { gap: 1rem; }
         }
     </style>
     """, unsafe_allow_html=True)
