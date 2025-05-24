@@ -29,10 +29,15 @@ load_dotenv()
 # ----------------- Load Phishing Model -----------------
 phishing_model = None
 
-try:
-    phishing_model = joblib.load("model/phishing.pkl")
-except Exception as e:
-    print(f"⚠️ Could not load phishing model: {e}")
+model_path = "model/newmodel.pkl"  # Updated filename
+if os.path.exists(model_path):
+    try:
+        phishing_model = joblib.load(model_path)
+        print("✅ Model loaded:", model_path)
+    except Exception as e:
+        print("❌ Error loading model:", e)
+else:
+    print("❌ File not found:", model_path)
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
@@ -123,7 +128,11 @@ def main():
     load_custom_css()
     display_hero_section()
 
-    # ----------------- Sidebar -----------------
+    if phishing_model:
+        st.sidebar.success("✅ Model loaded successfully.")
+    else:
+        st.sidebar.error("❌ Model not loaded. Check filename or path.")
+
     st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
     api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key")
     model = st.sidebar.selectbox("AI Model", [
@@ -138,12 +147,10 @@ def main():
     st.sidebar.metric("Messages", len(st.session_state.chat_history))
     st.sidebar.metric("Model", model.split('-')[0].title())
 
-    # ----------------- Tabs -----------------
     tab1, tab2, tab3, tab4 = st.tabs([
         "💬 Chat", "🔍 Static Analysis", "🛡️ Vulnerability Analysis", "🧪 Phishing URL Checker"
     ])
 
-    # ----------------- Tab 1: Chat -----------------
     with tab1:
         st.header("💬 Ask Security Questions")
         user_input = st.text_area("Your Question:", height=150)
@@ -160,7 +167,6 @@ def main():
                     st.markdown("### 🤖 Advitiya's Response:")
                     st.markdown(response)
 
-    # ----------------- Tab 2: Static Code Analysis -----------------
     with tab2:
         st.header("🔍 Static Code Analysis")
         language = st.selectbox("Select Language", ["Python", "JavaScript", "C++", "Java", "Go", "Other"])
@@ -175,7 +181,6 @@ def main():
                     st.markdown("### 📊 Analysis Results:")
                     st.markdown(result)
 
-    # ----------------- Tab 3: Vulnerability Analysis -----------------
     with tab3:
         st.header("🛡️ Vulnerability Scan Review")
         scan_type = st.selectbox("Scan Type", ["Nmap", "ZAP", "Nessus", "Custom Log"])
@@ -190,7 +195,6 @@ def main():
                     st.markdown("### 🎯 Vulnerability Report:")
                     st.markdown(result)
 
-    # ----------------- Tab 4: Phishing URL Detection -----------------
     with tab4:
         st.header("🧪 Phishing URL Detection")
         url_input = st.text_input("🔗 Enter a URL to check")
