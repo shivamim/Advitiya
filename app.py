@@ -26,12 +26,6 @@ if not os.path.exists(MODEL_FILE):
     with st.spinner("⬇️ Downloading model from Google Drive..."):
         gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
 
-# ----------------- Load Model -----------------
-try:
-    url_model = joblib.load(MODEL_FILE)
-except Exception as e:
-    url_model = None
-    st.warning(f"⚠️ Could not load 'malicious_url_model.pkl': {e}")
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
