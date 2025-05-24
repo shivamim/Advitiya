@@ -26,63 +26,115 @@ def convertion(url, prediction):
 # ----------------- Load ENV -----------------
 load_dotenv()
 
-# ----------------- Load Phishing Model (FIXED VERSION) -----------------
+# ----------------- Load Phishing Model (ENHANCED DEBUG VERSION) -----------------
 phishing_model = None
 
 def load_phishing_model():
-    """Load the phishing detection model with multiple fallback paths"""
+    """Load the phishing detection model with multiple fallback paths and enhanced debugging"""
     global phishing_model
+    
+    print("🔍 DEBUG: Starting model loading process...")
+    print(f"🔍 DEBUG: Current working directory: {os.getcwd()}")
+    print(f"🔍 DEBUG: Files in current directory: {os.listdir('.')}")
+    
+    # Check if model directory exists
+    if os.path.exists("model"):
+        print(f"🔍 DEBUG: Model directory exists!")
+        print(f"🔍 DEBUG: Files in model directory: {os.listdir('model')}")
+    else:
+        print("🔍 DEBUG: Model directory does NOT exist!")
     
     # Try multiple possible paths
     possible_paths = [
         "model/newmodel.pkl",  # Original path
         "./model/newmodel.pkl",  # Relative path
         os.path.join(os.getcwd(), "model", "newmodel.pkl"),  # Current working directory
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "model", "newmodel.pkl"),  # Script directory
         "newmodel.pkl",  # Direct file in root
-        "./newmodel.pkl"  # Direct relative path
+        "./newmodel.pkl",  # Direct relative path
     ]
     
-    for model_path in possible_paths:
+    # Add script directory path if __file__ is available
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        script_model_path = os.path.join(script_dir, "model", "newmodel.pkl")
+        possible_paths.append(script_model_path)
+        print(f"🔍 DEBUG: Script directory: {script_dir}")
+    except:
+        print("🔍 DEBUG: __file__ not available (running in Streamlit Cloud)")
+    
+    print(f"🔍 DEBUG: Trying {len(possible_paths)} possible paths...")
+    
+    for i, model_path in enumerate(possible_paths):
+        print(f"🔍 DEBUG: [{i+1}] Checking path: {model_path}")
+        print(f"🔍 DEBUG: [{i+1}] Path exists: {os.path.exists(model_path)}")
+        
         if os.path.exists(model_path):
             try:
+                print(f"🔍 DEBUG: [{i+1}] Attempting to load model...")
                 phishing_model = joblib.load(model_path)
-                print(f"✅ Model loaded successfully from: {model_path}")
+                print(f"✅ SUCCESS: Model loaded from: {model_path}")
                 return True, model_path
             except Exception as e:
-                print(f"❌ Error loading model from {model_path}: {e}")
+                print(f"❌ ERROR: Failed to load from {model_path}: {str(e)}")
+                print(f"❌ ERROR: Exception type: {type(e).__name__}")
                 continue
+        else:
+            print(f"❌ SKIP: Path does not exist: {model_path}")
     
-    print("❌ Model file not found in any of the expected locations:")
-    for path in possible_paths:
-        print(f"   - {path} (exists: {os.path.exists(path)})")
+    print("❌ FINAL: Model file not found in any location!")
+    print("📋 SUMMARY: Paths checked:")
+    for i, path in enumerate(possible_paths):
+        print(f"   [{i+1}] {path} -> {'EXISTS' if os.path.exists(path) else 'NOT FOUND'}")
+    
     return False, None
 
 # Call the function to load the model
 model_loaded, model_path_used = load_phishing_model()
 
-# Debug function
+# Debug function with enhanced information
 def debug_file_structure():
-    """Debug function to show current file structure"""
+    """Debug function to show current file structure with detailed info"""
     debug_info = {
         "current_dir": os.getcwd(),
-        "script_dir": os.path.dirname(os.path.abspath(__file__)) if __file__ else "N/A",
         "files_in_current": [],
         "model_dir_exists": False,
-        "model_files": []
+        "model_files": [],
+        "newmodel_pkl_locations": []
     }
     
     try:
-        debug_info["files_in_current"] = os.listdir(".")
+        debug_info["script_dir"] = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else "N/A (Streamlit Cloud)"
     except:
-        debug_info["files_in_current"] = ["Error reading directory"]
+        debug_info["script_dir"] = "N/A"
     
+    try:
+        debug_info["files_in_current"] = os.listdir(".")
+    except Exception as e:
+        debug_info["files_in_current"] = [f"Error: {str(e)}"]
+    
+    # Check model directory
     if os.path.exists("model"):
         debug_info["model_dir_exists"] = True
         try:
             debug_info["model_files"] = os.listdir("model")
-        except:
-            debug_info["model_files"] = ["Error reading model directory"]
+            # Check specifically for newmodel.pkl
+            if "newmodel.pkl" in debug_info["model_files"]:
+                model_path = "model/newmodel.pkl"
+                debug_info["newmodel_pkl_locations"].append({
+                    "path": model_path,
+                    "exists": os.path.exists(model_path),
+                    "size": os.path.getsize(model_path) if os.path.exists(model_path) else "N/A"
+                })
+        except Exception as e:
+            debug_info["model_files"] = [f"Error: {str(e)}"]
+    
+    # Search for newmodel.pkl in current directory
+    if "newmodel.pkl" in debug_info["files_in_current"]:
+        debug_info["newmodel_pkl_locations"].append({
+            "path": "newmodel.pkl",
+            "exists": True,
+            "size": os.path.getsize("newmodel.pkl")
+        })
     
     return debug_info
     # ----------------- Session State -----------------
@@ -199,17 +251,48 @@ def main():
             if model_loaded:
                 st.rerun()
 
-    # Debug Information (collapsible)
-    with st.sidebar.expander("🔍 Debug Information"):
+    # Debug Information (enhanced)
+    with st.sidebar.expander("🔍 Debug Information", expanded=not model_loaded):
         debug_info = debug_file_structure()
         st.write("**Current Directory:**", debug_info["current_dir"])
         st.write("**Script Directory:**", debug_info["script_dir"])
+        
         st.write("**Files in Current Dir:**")
-        st.write(debug_info["files_in_current"])
+        st.json(debug_info["files_in_current"])
+        
         st.write("**Model Directory Exists:**", debug_info["model_dir_exists"])
         if debug_info["model_dir_exists"]:
             st.write("**Files in Model Dir:**")
-            st.write(debug_info["model_files"])
+            st.json(debug_info["model_files"])
+            
+            # Highlight if newmodel.pkl is found
+            if "newmodel.pkl" in debug_info["model_files"]:
+                st.success("✅ newmodel.pkl found in model directory!")
+            else:
+                st.error("❌ newmodel.pkl NOT found in model directory!")
+        
+        # Show newmodel.pkl locations if found
+        if debug_info["newmodel_pkl_locations"]:
+            st.write("**newmodel.pkl Locations Found:**")
+            for location in debug_info["newmodel_pkl_locations"]:
+                st.write(f"- **Path:** {location['path']}")
+                st.write(f"  - **Exists:** {location['exists']}")
+                st.write(f"  - **Size:** {location['size']} bytes")
+        else:
+            st.error("❌ newmodel.pkl not found anywhere!")
+            
+        # Manual path test
+        st.write("**Manual Path Tests:**")
+        test_paths = ["model/newmodel.pkl", "./model/newmodel.pkl", "newmodel.pkl"]
+        for path in test_paths:
+            exists = os.path.exists(path)
+            st.write(f"- `{path}`: {'✅ EXISTS' if exists else '❌ NOT FOUND'}")
+            if exists:
+                try:
+                    size = os.path.getsize(path)
+                    st.write(f"  Size: {size} bytes")
+                except:
+                    st.write("  Size: Error getting size")
 
     st.sidebar.markdown("---")
     
