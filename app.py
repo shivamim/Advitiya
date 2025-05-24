@@ -14,8 +14,6 @@ from dotenv import load_dotenv
 from rich.markdown import Markdown
 from typing import Any
 from groq import Groq
-from streamlit_lottie import st_lottie
-import requests
 
 # ----------------- Load ENV -----------------
 load_dotenv()
@@ -44,79 +42,50 @@ except Exception as e:
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-# ----------------- Load Lottie -----------------
-def load_lottie_url(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
-
-lottie_shield = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_tutvdkg0.json")
-
 # ----------------- Custom CSS -----------------
 def load_custom_css():
     st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
         html, body, .main, .stApp {
-            background: linear-gradient(135deg, #000000, #1a1a1a);
-            color: #f8f8f8;
-            font-family: 'Orbitron', sans-serif;
+            background: #f5f7fa !important;
+            font-family: 'Poppins', sans-serif;
         }
         .main-header {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00FFFF;
+            background: linear-gradient(90deg, #4ECDC4, #556270);
+            color: white;
             border-radius: 15px;
             padding: 2rem;
             text-align: center;
-            box-shadow: 0 0 30px #00FFFF;
-            animation: pulseHeader 3s infinite;
-        }
-        @keyframes pulseHeader {
-            0% { box-shadow: 0 0 20px #00FFFF; }
-            50% { box-shadow: 0 0 40px #FF00FF; }
-            100% { box-shadow: 0 0 20px #00FFFF; }
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
         .main-title {
-            font-size: 3rem;
-            color: #00FFFF;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
         .main-subtitle {
             font-size: 1.2rem;
-            color: #ffffff;
+            font-weight: 300;
         }
         .stButton > button {
-            background: linear-gradient(45deg, #00FFFF, #FF00FF);
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             color: white;
-            font-weight: bold;
+            font-weight: 600;
             border-radius: 25px;
             border: none;
             padding: 10px 25px;
             font-size: 1rem;
-            box-shadow: 0 0 10px #00FFFF;
-            transition: transform 0.2s ease-in-out;
         }
         .stButton > button:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 25px #FF00FF;
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
-        .stTabs [data-baseweb="tab-list"] {
-            background: #101010;
-            border-radius: 12px;
-            padding: 0.5rem;
-            border: 1px solid #00FFFF;
-        }
-        .stTabs [data-baseweb="tab"] {
-            font-weight: bold;
-            font-size: 1rem;
-            padding: 1rem 1.5rem;
+        .metric-container {
+            padding: 1rem;
             border-radius: 10px;
-            background: #1f1f1f;
-            color: #ffffff;
-        }
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(to right, #00FFFF, #FF00FF);
-            color: #ffffff !important;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
     </style>
     """, unsafe_allow_html=True)
@@ -125,16 +94,12 @@ def load_custom_css():
 def display_hero_section():
     st.markdown("""
     <div class="main-header">
-        <div class="main-title">⚡ Advitiya AI</div>
+        <div class="main-title">🔐 Advitiya AI</div>
         <div class="main-subtitle">
-            Futuristic AI-Powered Cybersecurity Assistant by Team XAI
+            Advanced AI-Powered Security Assistant by Team XAI
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st_lottie(lottie_shield, height=200, key="shield")
-
-# Keep rest of your app as-is...
-
 
 # ----------------- Groq Integration -----------------
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
