@@ -28,16 +28,17 @@ load_dotenv()
 
 # ----------------- Load Phishing Model -----------------
 phishing_model = None
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, "model", "newmodel.pkl")
 
-model_path = "model/newmodel.pkl"  # Updated filename
 if os.path.exists(model_path):
     try:
         phishing_model = joblib.load(model_path)
-        print("✅ Model loaded:", model_path)
+        print("✅ Model loaded from:", model_path)
     except Exception as e:
         print("❌ Error loading model:", e)
 else:
-    print("❌ File not found:", model_path)
+    print("❌ Model file not found at:", model_path)
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
@@ -128,10 +129,11 @@ def main():
     load_custom_css()
     display_hero_section()
 
+    # Sidebar Load Status
     if phishing_model:
-        st.sidebar.success("✅ Model loaded successfully.")
+        st.sidebar.success("✅ Phishing model loaded successfully.")
     else:
-        st.sidebar.error("❌ Model not loaded. Check filename or path.")
+        st.sidebar.error("❌ Model not loaded. Check path or filename.")
 
     st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
     api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key")
