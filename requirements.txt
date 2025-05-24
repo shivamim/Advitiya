@@ -14,3 +14,14 @@ rich
 scikit-learn
 streamlit
 tldextract
+streamlit
+scikit-learn
+joblib
+tldextract
+pandas
+numpy
+python_dateutil
+whois
+requests
+beautifulsoup4
+googlesearch_python
