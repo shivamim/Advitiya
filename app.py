@@ -10,7 +10,7 @@ from groq import Groq
 load_dotenv()
 
 # Model download
-MODEL_URL = "https://drive.google.com/uc?id=143Et7ju96CgnsBj8aOHToqNVAhP4mEfY"
+MODEL_URL = "https://drive.google.com/uc?id=14rCp6hZJCdGwwFZUVVBGeSh8DCMFsTMy"
 MODEL_FILE = "malicious_url_model.pkl"
 if not os.path.exists(MODEL_FILE):
     with st.spinner("⬇️ Downloading model from Google Drive..."):
