@@ -149,12 +149,14 @@ def main():
     st.sidebar.metric("Messages", len(st.session_state.chat_history))
     st.sidebar.metric("Model", model)
 
-    tab1, tab2 = st.tabs(["💬 Chat Assistant", "🧪 Phishing URL Detector"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "💬 Chat", "🔍 Static Code Analysis", "🛡️ Vulnerability Analysis", "📚 Resources", "🧪 Phishing URL Detector"
+    ])
 
     with tab1:
         st.header("💬 Ask Security Questions")
         user_input = st.text_area("Your Question:", height=150)
-        if st.button("🚀 Send"):
+        if st.button("🚀 Send Message", key="chat_send"):
             if not api_key:
                 st.error("Please enter Groq API key.")
             elif user_input:
@@ -167,8 +169,51 @@ def main():
                     st.markdown(response)
 
     with tab2:
-        st.header("🧪 Malicious URL Detection")
-        url = st.text_input("🔗 Enter a URL to check", placeholder="https://example.com")
+        st.header("🔍 Static Code Analysis")
+        language = st.selectbox("Language", ["Python", "JavaScript", "C++", "Java", "Go", "Other"])
+        code = st.text_area("Paste your code here:", height=300)
+        if st.button("🔎 Analyze Code"):
+            if not api_key:
+                st.error("Please enter Groq API key.")
+            elif code:
+                with st.spinner("Analyzing code..."):
+                    prompt = f"""
+                    Analyze this code written in {language} for any security flaws, vulnerabilities, and improvement suggestions:
+                    ```{language.lower()}
+                    {code}
+                    ```
+                    """
+                    result = fetch_groq_response(prompt, api_key, model)
+                    st.markdown("### 📊 Code Analysis:")
+                    st.markdown(result)
+
+    with tab3:
+        st.header("🛡️ Vulnerability Scan Analysis")
+        scan_type = st.selectbox("Scan Type", ["Nmap", "ZAP", "Nessus", "Custom Log"])
+        scan_data = st.text_area("Paste scan output:", height=300)
+        if st.button("🔍 Analyze Vulnerabilities"):
+            if not api_key:
+                st.error("Please enter Groq API key.")
+            elif scan_data:
+                with st.spinner("Analyzing vulnerabilities..."):
+                    prompt = f"Analyze this {scan_type} scan for security issues and provide fixes:\n{scan_data}"
+                    result = fetch_groq_response(prompt, api_key, model)
+                    st.markdown("### 🎯 Vulnerability Report:")
+                    st.markdown(result)
+
+    with tab4:
+        st.header("📚 Cybersecurity Resources")
+        st.markdown("""
+        - 🔐 [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+        - 🛡️ [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+        - ✅ [CIS Critical Controls](https://www.cisecurity.org/controls/)
+        - 🧠 [ISO/IEC 27001](https://www.iso.org/isoiec-27001-information-security.html)
+        - 🐞 [SANS Top 25 Software Errors](https://www.sans.org/top25-software-errors/)
+        """)
+
+    with tab5:
+        st.header("🧪 Phishing URL Detector")
+        url = st.text_input("🔗 Enter URL to analyze", placeholder="https://example.com")
         if st.button("🚦 Check URL"):
             if not url:
                 st.warning("Please enter a valid URL.")
