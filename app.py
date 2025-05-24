@@ -19,8 +19,8 @@ import gdown
 load_dotenv()
 
 # ----------------- Download Model if Needed -----------------
-MODEL_URL = "https://drive.google.com/uc?id=10DB7M-rxu5518XUphJQEOdoS3CYVbuc1"
-MODEL_FILE = "model.pkl"
+MODEL_URL = "https://drive.google.com/uc?id=1cpKoE1MGVKBtgHWV3KJnwFPK0LgfNKSC"
+MODEL_FILE = "random_forest_model.pkl"
 
 if not os.path.exists(MODEL_FILE):
     with st.spinner("⬇️ Downloading model from Google Drive..."):
