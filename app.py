@@ -1,30 +1,29 @@
 import streamlit as st
-st.set_page_config(page_title="Advitiya AI - Security Assistant", page_icon="🔐", layout="wide")
-
 import os, json, re, time, joblib
-import tldextract, gdown
+import tldextract
+import gdown
 from dotenv import load_dotenv
 from groq import Groq
+from pycaret.classification import load_model, predict_model
+from featureExtractor import featureExtraction
 
-# Load env
+# Load environment variables if .env exists
 load_dotenv()
 
-# Model download
-MODEL_URL = "https://drive.google.com/uc?id=14rCp6hZJCdGwwFZUVVBGeSh8DCMFsTMy"
-MODEL_FILE = "malicious_url_model.pkl"
-if not os.path.exists(MODEL_FILE):
-    with st.spinner("⬇️ Downloading model from Google Drive..."):
-        gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
+----
 
+
+# ------------------ Load PyCaret Model ------------------
 try:
-    url_model = joblib.load(MODEL_FILE)
+    pycaret_model = load_model("model/phishingdetection")
 except Exception as e:
-    url_model = None
-    st.warning(f"⚠️ Could not load model: {e}")
+    pycaret_model = None
+    st.warning(f"⚠️ Could not load PyCaret phishing model: {e}")
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+# ------------------ Custom CSS ------------------
 def load_custom_css():
     st.markdown("""
     <style>
@@ -141,18 +140,7 @@ def display_hero_section():
     </div>
     """, unsafe_allow_html=True)
 
-def extract_url_features(url):
-    features = {}
-    features["url_length"] = len(url)
-    features["https"] = int(url.startswith("https"))
-    features["num_dots"] = url.count(".")
-    features["has_ip"] = int(bool(re.search(r'\d+\.\d+\.\d+\.\d+', url)))
-    features["has_suspicious_words"] = int(any(word in url.lower() for word in [
-        "login", "secure", "update", "verify", "account", "bank", "free", "click"]))
-    ext = tldextract.extract(url)
-    features["domain_length"] = len(ext.domain)
-    return list(features.values())
-
+# ------------------ Groq and Analysis ------------------
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
     try:
         client = Groq(api_key=api_key)
@@ -175,11 +163,12 @@ def perform_vuln_analysis(scan_type, data, api_key, model):
     prompt = f"""Analyze this {scan_type} scan for vulnerabilities and misconfigurations:
     {data}"""
     return fetch_groq_response(prompt, api_key, model)
+
+# ------------------ Main App ------------------
 def main():
     load_custom_css()
     display_hero_section()
 
-    # Sidebar
     st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
     api_key = st.sidebar.text_input("🔑 Groq API Key", type="password", placeholder="Enter Groq API Key")
     model = st.sidebar.selectbox("🧠 Select AI Model", [
@@ -199,7 +188,6 @@ def main():
     st.sidebar.metric("💬 Messages", len(st.session_state.chat_history))
     st.sidebar.metric("🎯 Model", model.split('-')[0].title())
 
-    # Tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "💬 Chat",
         "🔍 Static Analysis",
@@ -208,7 +196,7 @@ def main():
         "🧪 URL Safety Checker"
     ])
 
-    # --- Tab 1: Chat ---
+    # ---- Tab 1 ----
     with tab1:
         st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.subheader("💬 Chat with Advitiya")
@@ -232,7 +220,7 @@ def main():
             st.success("Chat cleared!")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- Tab 2: Static Code Analysis ---
+    # ---- Tab 2 ----
     with tab2:
         st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.subheader("🔍 Analyze Your Code")
@@ -248,7 +236,7 @@ def main():
                     st.markdown(result)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- Tab 3: Vulnerability Analysis ---
+    # ---- Tab 3 ----
     with tab3:
         st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.subheader("🛡️ Analyze Vulnerability Data")
@@ -264,7 +252,7 @@ def main():
                     st.markdown(result)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- Tab 4: Security Resources ---
+    # ---- Tab 4 ----
     with tab4:
         st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.subheader("📚 Security Learning Hub")
@@ -284,7 +272,8 @@ def main():
         - [ISO 27001](https://www.iso.org/isoiec-27001-information-security.html)
         """)
         st.markdown('</div>', unsafe_allow_html=True)
-    # --- Tab 5: URL Safety Checker ---
+
+    # ---- Tab 5: URL Safety ----
     with tab5:
         st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.subheader("🧪 Malicious URL Detector")
@@ -293,23 +282,24 @@ def main():
         if st.button("🚦 Check URL"):
             if not url_input:
                 st.error("❗ Please enter a valid URL.")
-            elif url_model is None:
-                st.error("⚠️ Model not loaded. Please check the .pkl file.")
+            elif pycaret_model is None:
+                st.error("⚠️ PyCaret model not loaded.")
             else:
                 try:
-                    features = [extract_url_features(url_input)]
-                    prediction = url_model.predict(features)[0]
-                    label_map = {0: "BENIGN", 1: "DEFACEMENT", 2: "MALWARE", 3: "PHISHING"}
-                    verdict = label_map.get(prediction, "UNKNOWN")
+                    with st.spinner("🔍 Extracting features and predicting..."):
+                        features_df = featureExtraction(url_input)
+                        prediction_result = predict_model(pycaret_model, data=features_df)
+                        label = prediction_result['prediction_label'][0]
+                        score = prediction_result['prediction_score'][0] * 100
 
-                    if verdict == "BENIGN":
-                        st.success("✅ This URL appears to be SAFE.")
-                    else:
-                        st.error(f"🚨 This URL appears to be **{verdict}**.")
+                        if label == 'benign':
+                            st.success(f"✅ This URL appears SAFE with {score:.2f}% confidence.")
+                        else:
+                            st.error(f"🚨 This URL is likely **{label.upper()}** with {score:.2f}% confidence.")
                 except Exception as e:
                     st.error(f"❌ Prediction error: {e}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- Run the App -----------------
+# ---------------- Run ------------------
 if __name__ == "__main__":
     main()
