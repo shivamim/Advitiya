@@ -95,7 +95,7 @@ def main():
     if phishing_model:
         st.sidebar.success("✅ Model loaded")
     else:
-        st.sidebar.error("❌ Model not loaded")
+        st.sidebar.error("❌ Model not loaded. Make sure 'newmodel.pkl' is in the root directory.")
 
     st.sidebar.markdown("---")
     st.sidebar.metric("Messages", len(st.session_state.chat_history))
@@ -154,7 +154,7 @@ def main():
             if not url:
                 st.warning("Enter a URL first")
             elif phishing_model is None:
-                st.error("⚠️ Model not loaded")
+                st.error("⚠️ Phishing detection model is not loaded. Make sure 'newmodel.pkl' exists in root directory.")
             else:
                 try:
                     obj = FeatureExtraction(url)
