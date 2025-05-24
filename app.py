@@ -4,40 +4,34 @@ st.set_page_config(page_title="Advitiya AI - Security Assistant", page_icon="⚡
 
 import os
 import json
-import time
-import re
-import joblib
-import numpy as np
-import tldextract
-import gdown
-from dotenv import load_dotenv
+import requests
 from rich.markdown import Markdown
 from typing import Any
+from dotenv import load_dotenv
 from groq import Groq
-from feature import FeatureExtraction
+import time
+import re
+import tldextract
+import joblib
+import gdown
 
 # ----------------- Load ENV -----------------
 load_dotenv()
 
-# ----------------- Helper Function -----------------
-def convertion(url, prediction):
-    if prediction == 1:
-        return f"The URL '{url}' appears to be **safe** and legitimate."
-    else:
-        return f"⚠️ The URL '{url}' looks **suspicious** and might be a phishing attempt."
-
-# ----------------- Download Model from Google Drive -----------------
-MODEL_URL = "https://drive.google.com/uc?id=1cpKoE1MGVKBtgHWV3KJnwFPK0LgfNKSC"
+# ----------------- Download Model if Needed -----------------
+MODEL_URL = "https://drive.google.com/uc?id=143Et7ju96CgnsBj8aOHToqNVAhP4mEfY"
 MODEL_FILE = "malicious_url_model.pkl"
 
 if not os.path.exists(MODEL_FILE):
-    with st.spinner("⬇️ Downloading phishing detection model from Google Drive..."):
+    with st.spinner("⬇️ Downloading model from Google Drive..."):
         gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
 
+# ----------------- Load Model -----------------
 try:
-    phishing_model = joblib.load(MODEL_FILE)
+    url_model = joblib.load(MODEL_FILE)
 except Exception as e:
-    phishing_model = None
+    url_model = None
+    st.warning(f"⚠️ Could not load 'malicious_url_model.pkl': {e}")
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
@@ -48,27 +42,51 @@ def load_custom_css():
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
         html, body, .main, .stApp {
-            background: #f5f7fa !important;
+            background: #ffffff !important;
+            color: #000000 !important;
             font-family: 'Poppins', sans-serif;
         }
+
+        /* Hero Header */
         .main-header {
-            background: linear-gradient(90deg, #4ECDC4, #556270);
-            color: white;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
             padding: 2rem;
+            margin-bottom: 2rem;
             text-align: center;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            animation: fadeIn 1s ease-in-out;
         }
+
         .main-title {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            color: #000000;
         }
+
         .main-subtitle {
             font-size: 1.2rem;
             font-weight: 300;
+            color: #444444;
         }
+
+        /* Glass-style Cards */
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid #dddddd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        /* Stylish Buttons */
         .stButton > button {
             background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             color: white;
@@ -77,38 +95,122 @@ def load_custom_css():
             border: none;
             padding: 10px 25px;
             font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
+
         .stButton > button:hover {
             transform: scale(1.03);
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
         }
-        .metric-container {
-            padding: 1rem;
+
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"] {
+            background: #f2f2f2;
+            border-radius: 12px;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 1.5rem;
             border-radius: 10px;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .stTabs [aria-selected="true"] {
+            background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+            color: white !important;
+        }
+
+        /* Inputs */
+        input, textarea, select {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #ccc !important;
+            border-radius: 8px !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #888 !important;
+        }
+
+        /* Sidebar */
+        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
+            background: #f9f9f9 !important;
+            color: #000000 !important;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar-header {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #000000 !important;
+        }
+
+        /* Metric text */
+        .stMetric label {
+            color: #000000 !important;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
         }
     </style>
     """, unsafe_allow_html=True)
 
-# ----------------- Display Hero -----------------
+
+# ----------------- Display Header -----------------
 def display_hero_section():
     st.markdown("""
     <div class="main-header">
         <div class="main-title">🔐 Advitiya AI</div>
         <div class="main-subtitle">
-            Advanced AI-Powered Security Assistant by Team XAI
+            Advanced AI-Powered Security Assistant<br>
+            <strong>Developed by Team XAI</strong>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# ----------------- Groq Integration -----------------
+# ----------------- Feature Extraction -----------------
+def extract_url_features(url):
+    features = {}
+    features["url_length"] = len(url)
+    features["https"] = int(url.startswith("https"))
+    features["num_dots"] = url.count(".")
+    features["has_ip"] = int(bool(re.search(r'\d+\.\d+\.\d+\.\d+', url)))
+    features["has_suspicious_words"] = int(any(word in url.lower() for word in [
+        "login", "secure", "update", "verify", "account", "bank", "free", "click"]))
+    ext = tldextract.extract(url)
+    features["domain_length"] = len(ext.domain)
+    return list(features.values())
+
+# ----------------- Analysis Helpers -----------------
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
     try:
         client = Groq(api_key=api_key)
         completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are Advitiya, a helpful AI for cybersecurity and security analysis."},
+                {"role": "system", "content": "You are Advitiya, an advanced AI security assistant."},
                 {"role": "user", "content": prompt}
             ],
             model=model,
@@ -121,63 +223,128 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
     except Exception as e:
         return f"Error: {str(e)}"
 
-# ----------------- App Main -----------------
+def perform_static_analysis(language_used: str, file_data: str, api_key: str, model: str) -> str:
+    instructions = "Analyze this code for security vulnerabilities, quality issues, bugs, and bad practices."
+    prompt = f"{instructions}\nLanguage: {language_used}\nCode:\n```{language_used}\n{file_data}\n```"
+    return fetch_groq_response(prompt, api_key, model)
+
+def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: str) -> str:
+    instructions = "Analyze this vulnerability scan for risks, misconfigurations, and fixes."
+    prompt = f"{instructions}\nScan Type: {scan_type}\nScan Data:\n{scan_data}"
+    return fetch_groq_response(prompt, api_key, model)
+# ----------------- Main App Logic -----------------
 def main():
     load_custom_css()
     display_hero_section()
 
-    st.sidebar.header("⚙️ Configuration")
-    api_key = st.sidebar.text_input("Groq API Key", type="password")
+    # ----------------- Sidebar -----------------
+    st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
+    api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key")
     model = st.sidebar.selectbox("AI Model", [
-        "deepseek-r1-distill-llama-70b", "llama3-8b-8192", "mixtral-8x7b-32768", "gemma-7b-it"])
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.1-8b-instant",
+        "llama3-8b-8192",
+        "mixtral-8x7b-32768",
+        "gemma-7b-it"
+    ])
+    if st.sidebar.button("💾 Save Chat History"):
+        with open('chat_history.json', 'w') as f:
+            json.dump(st.session_state.chat_history, f)
+        st.sidebar.success("Chat history saved!")
+
     st.sidebar.markdown("---")
     st.sidebar.metric("Messages", len(st.session_state.chat_history))
-    st.sidebar.metric("Model", model)
+    st.sidebar.metric("Model", model.split('-')[0].title())
 
-    tab1, tab2 = st.tabs(["💬 Chat Assistant", "🧪 Phishing URL Detector"])
+    # ----------------- Tabs -----------------
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "💬 Chat",
+        "🔍 Static Analysis",
+        "🛡️ Vulnerability Analysis",
+        "📚 Resources",
+        "🧪 URL Safety Checker"
+    ])
 
+    # ----------------- Tab 1: Chat -----------------
     with tab1:
         st.header("💬 Ask Security Questions")
         user_input = st.text_area("Your Question:", height=150)
-        if st.button("🚀 Send"):
+        if st.button("🚀 Send Message", key="chat_send"):
             if not api_key:
-                st.error("Please enter Groq API key.")
+                st.error("Please provide your Groq API key.")
             elif user_input:
-                with st.spinner("Generating response..."):
+                with st.spinner("Thinking..."):
                     response = fetch_groq_response(user_input, api_key, model)
                     st.session_state.chat_history.append({
-                        "query": user_input, "response": response, "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                        "query": user_input,
+                        "response": response,
+                        "model": model,
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                     })
-                    st.markdown("### 🤖 Response:")
+                    st.markdown("### 🤖 Advitiya's Response:")
                     st.markdown(response)
 
+    # ----------------- Tab 2: Static Code Analysis -----------------
     with tab2:
-        st.header("🧪 Malicious URL Detection")
-        url = st.text_input("🔗 Enter a URL to check", placeholder="https://example.com")
+        st.header("🔍 Static Code Analysis")
+        language = st.selectbox("Select Language", ["Python", "JavaScript", "C++", "Java", "Go", "Other"])
+        code = st.text_area("Paste your code here", height=300)
+        if st.button("🔎 Analyze Code"):
+            if not api_key:
+                st.error("Please provide your Groq API key.")
+            elif code:
+                with st.spinner("Analyzing code..."):
+                    result = perform_static_analysis(language, code, api_key, model)
+                    st.markdown("### 📊 Analysis Results:")
+                    st.markdown(result)
+
+    # ----------------- Tab 3: Vulnerability Analysis -----------------
+    with tab3:
+        st.header("🛡️ Vulnerability Scan Review")
+        scan_type = st.selectbox("Scan Type", ["Nmap", "ZAP", "Nessus", "Custom Log"])
+        scan_data = st.text_area("Paste scan output or data", height=300)
+        if st.button("🔍 Analyze Vulnerabilities"):
+            if not api_key:
+                st.error("Please provide your Groq API key.")
+            elif scan_data:
+                with st.spinner("Analyzing vulnerabilities..."):
+                    result = perform_vuln_analysis(scan_type, scan_data, api_key, model)
+                    st.markdown("### 🎯 Vulnerability Report:")
+                    st.markdown(result)
+
+    # ----------------- Tab 4: Security Resources -----------------
+    with tab4:
+        st.header("📚 Cybersecurity Resources")
+        st.markdown("""
+        - 🔐 [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+        - 🛡️ [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+        - ✅ [CIS Critical Controls](https://www.cisecurity.org/controls/)
+        - 🧠 [ISO/IEC 27001](https://www.iso.org/isoiec-27001-information-security.html)
+        - 🐞 [SANS Top 25 Software Errors](https://www.sans.org/top25-software-errors/)
+        """)
+
+    # ----------------- Tab 5: URL Safety Checker -----------------
+    with tab5:
+        st.header("🧪 Malicious URL Detector")
+        url_input = st.text_input("🔗 Enter URL to check", placeholder="http://example.com")
         if st.button("🚦 Check URL"):
-            if not url:
-                st.warning("Please enter a valid URL.")
-            elif phishing_model is None:
+            if not url_input:
+                st.error("Please enter a valid URL.")
+            elif url_model is None:
                 st.error("⚠️ Model not loaded. Please check the file.")
             else:
                 try:
-                    obj = FeatureExtraction(url)
-                    x = np.array(obj.getFeaturesList()).reshape(1, 30)
-                    safe_domains = ["google.com", "facebook.com", "netflix.com"]
-                    domain = tldextract.extract(url).domain + "." + tldextract.extract(url).suffix
-                    if domain in safe_domains:
-                        prediction = 1
+                    features = [extract_url_features(url_input)]
+                    prediction = url_model.predict(features)[0]
+                    label_map = {0: "BENIGN", 1: "DEFACEMENT", 2: "MALWARE", 3: "PHISHING"}
+                    result = label_map.get(prediction, "UNKNOWN")
+                    if result == "BENIGN":
+                        st.success("✅ Safe: This URL appears to be benign.")
                     else:
-                        prediction = phishing_model.predict(x)[0]
-                    label_map = {1: "✅ Safe", -1: "⚠️ Phishing"}
-                    result = label_map.get(prediction, "Unknown")
-
-                    st.subheader(result)
-                    st.markdown(convertion(url, prediction))
-
+                        st.error(f"⚠️ Warning: This URL appears to be {result}.")
                 except Exception as e:
-                    st.error(f"Error during prediction: {str(e)}")
+                    st.error(f"Error during prediction: {e}")
 
-# ----------------- Launch -----------------
+# ----------------- Launch App -----------------
 if __name__ == "__main__":
     main()
