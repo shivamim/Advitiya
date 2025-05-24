@@ -176,12 +176,16 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
     except Exception as e:
         return f"❌ Error: {str(e)}\n\nPlease check your API key and try again."
         # ----------------- Main App Function -----------------
+# ----------------- Main App Function -----------------
 def main():
     load_custom_css()
     display_hero_section()
 
     # ----------------- Sidebar Configuration -----------------
     st.sidebar.markdown('<div style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
+    
+    # Declare global variables at the start of function
+    global phishing_model, model_loaded, model_path_used
     
     # Model Status Display
     if phishing_model is not None:
@@ -191,7 +195,6 @@ def main():
     else:
         st.sidebar.error("❌ Phishing model not loaded.")
         if st.sidebar.button("🔄 Retry Loading Model"):
-            global phishing_model, model_loaded, model_path_used
             model_loaded, model_path_used = load_phishing_model()
             if model_loaded:
                 st.rerun()
