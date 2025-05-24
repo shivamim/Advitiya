@@ -14,3 +14,14 @@ scikit-learn
 pandas
 rich
 python-dotenv
+streamlit
+gdown
+tldextract
+joblib
+groq
+pycaret
+httpx
+python-whois
+scikit-learn
+pandas
+
