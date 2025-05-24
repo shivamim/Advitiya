@@ -25,3 +25,4 @@ whois
 requests
 beautifulsoup4
 googlesearch_python
+streamlit-lottie
