@@ -1,4 +1,4 @@
-angchain
+langchain
 python-dotenv
 huggingface-hub
 groq
