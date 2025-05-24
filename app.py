@@ -7,20 +7,48 @@ from typing import Any
 from dotenv import load_dotenv
 from groq import Groq
 import time
+import re
+import tldextract
+import joblib
+import gdown
 
 # Load environment variables
 load_dotenv()
+
+# Download model from Google Drive if not exists
+MODEL_URL = "https://drive.google.com/uc?id=143Et7ju96CgnsBj8aOHToqNVAhP4mEfY"  # replace with your file ID
+MODEL_FILE = "malicious_url_model.pkl"
+
+if not os.path.exists(MODEL_FILE):
+    with st.spinner("⬇️ Downloading model from Google Drive..."):
+        gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
 
 # Initialize session state
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
+# Load malicious URL detection model
+try:
+    url_model = joblib.load(MODEL_FILE)
+except Exception as e:
+    url_model = None
+    st.warning(f"⚠️ Could not load 'malicious_url_model.pkl': {e}")
+
+# Feature extractor
+def extract_url_features(url):
+    features = {}
+    features["url_length"] = len(url)
+    features["https"] = int(url.startswith("https"))
+    features["num_dots"] = url.count(".")
+    features["has_ip"] = int(bool(re.search(r'\d+\.\d+\.\d+\.\d+', url)))
+    features["has_suspicious_words"] = int(any(word in url.lower() for word in ["login", "secure", "update", "verify", "account", "bank", "free", "click"]))
+    ext = tldextract.extract(url)
+    features["domain_length"] = len(ext.domain)
+    return list(features.values())
+
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
-    """Fetch response from Groq API."""
     try:
         client = Groq(api_key=api_key)
-        
-        # Call the Groq API
         completion = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": "You are Advitiya, an advanced AI security assistant powered by cutting-edge language models."},
@@ -32,19 +60,16 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
             top_p=1,
             stream=False
         )
-        
         return completion.choices[0].message.content
     except Exception as e:
         return f"Error: {str(e)}"
 
 def save_chat_history():
-    """Save chat history to JSON file."""
     with open('chat_history.json', 'w') as f:
         json.dump(st.session_state.chat_history, f)
     st.success("Chat history saved successfully!")
 
 def perform_static_analysis(language_used: str, file_data: str, api_key: str, model: str) -> str:
-    """Perform static code analysis."""
     instructions = """
     As a code security expert, analyze the given programming file to identify:
     1. Security vulnerabilities
@@ -52,31 +77,24 @@ def perform_static_analysis(language_used: str, file_data: str, api_key: str, mo
     3. Potential bugs
     4. Exposed sensitive information (API keys, credentials)
     5. Security best practices violations
-    
     Provide a detailed analysis with:
     - Severity levels for each issue
     - Code snippets highlighting problems
     - Recommended fixes
     - Security best practices
-    
     Format the response in Markdown with clear headers and bullet points.
     """
-    
     analysis_prompt = f"""
     {instructions}
-    
     Language: {language_used}
-    
     Code to analyze:
     ```{language_used}
     {file_data}
     ```    
     """
-    
     return fetch_groq_response(analysis_prompt, api_key, model)
 
 def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: str) -> str:
-    """Perform vulnerability analysis."""
     instructions = """
     As a security vulnerability analyzer, examine the provided scan data to:
     1. Identify all security vulnerabilities
@@ -84,28 +102,22 @@ def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: s
     3. Detect misconfigurations
     4. Identify exposed sensitive information
     5. Evaluate security controls
-    
     Provide a comprehensive report including:
     - Executive summary
     - Detailed findings with CVSS scores where applicable
     - Risk ratings (Critical, High, Medium, Low)
     - Remediation steps
     - Technical recommendations
-    
     Format the response in Markdown with clear sections and proper formatting.
     """
-    
     analysis_prompt = f"""
     {instructions}
-    
     Scan Type: {scan_type}
-    
     Scan Data:
     ```    
     {scan_data}
     ```    
     """
-    
     return fetch_groq_response(analysis_prompt, api_key, model)
 
 def load_custom_css():
@@ -382,253 +394,173 @@ def display_model_info(model):
         </div>
         """, unsafe_allow_html=True)
 
-def main():
-    # Page configuration with custom theme
-    st.set_page_config(
-        page_title="Advitiya AI - Security Assistant", 
-        page_icon="🔐",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+def display_hero_section():
+    st.markdown("""
+    <div class="main-header fade-in">
+        <div class="main-title pulse">🔐 Advitiya AI</div>
+        <div class="main-subtitle">
+            Advanced AI-Powered Security Analysis Assistant<br>
+            <strong>Developed by Shivam Shukla</strong><br>
+            Leveraging cutting-edge language models for intelligent security assessments
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Load custom CSS
+def display_model_info(model):
+    model_info = {
+        "llama3-8b-8192": {
+            "name": "Llama 3 8B",
+            "description": "Fast and efficient model for general security analysis",
+            "best_for": "Quick analysis, code reviews"
+        },
+        "llama-3.1-8b-instant": {
+            "name": "Llama 3.1 8B Instant",
+            "description": "Latest Llama model with enhanced capabilities",
+            "best_for": "Real-time analysis, instant responses"
+        },
+        "deepseek-r1-distill-llama-70b": {
+            "name": "DeepSeek R1 Distill 70B",
+            "description": "Advanced reasoning model for complex security analysis",
+            "best_for": "Deep vulnerability analysis, complex threat modeling"
+        },
+        "mixtral-8x7b-32768": {
+            "name": "Mixtral 8x7B",
+            "description": "High-performance mixture of experts model",
+            "best_for": "Comprehensive analysis, detailed reports"
+        },
+        "gemma-7b-it": {
+            "name": "Gemma 7B IT",
+            "description": "Instruction-tuned model for focused tasks",
+            "best_for": "Specific security tasks, targeted analysis"
+        }
+    }
+
+    if model in model_info:
+        info = model_info[model]
+        st.sidebar.markdown(f"""
+        <div style="padding: 1rem; border-radius: 10px; margin: 1rem 0; border: 1px solid #ccc;">
+            <h4>🤖 {info['name']}</h4>
+            <p>{info['description']}</p>
+            <p><strong>Best for:</strong> {info['best_for']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+def main():
+    st.set_page_config(page_title="Advitiya AI - Security Assistant", page_icon="🔐", layout="wide")
     load_custom_css()
-    
-    # Display hero section
     display_hero_section()
-    
-    # Sidebar configuration with enhanced styling
+
     st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
     st.sidebar.markdown("---")
-    
-    # API Configuration
-    st.sidebar.markdown('<div class="sidebar-header">🔑 API Configuration</div>', unsafe_allow_html=True)
-    api_key = st.sidebar.text_input(
-        "Groq API Key", 
-        type="password", 
-        placeholder="Enter your Groq API Key here",
-        help="Get your API key from https://console.groq.com/"
-    )
-    
-    # Model Selection with enhanced options
-    st.sidebar.markdown('<div class="sidebar-header">🧠 Model Selection</div>', unsafe_allow_html=True)
-    model = st.sidebar.selectbox(
-        "Select AI Model",
-        [
-            "deepseek-r1-distill-llama-70b",
-            "llama-3.1-8b-instant", 
-            "llama3-8b-8192",
-            "mixtral-8x7b-32768",
-            "gemma-7b-it"
-        ],
-        help="Choose the AI model for analysis. Different models have different strengths."
-    )
-    
-    # Display model information
+
+    api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key here")
+    model = st.sidebar.selectbox("Select AI Model", [
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.1-8b-instant",
+        "llama3-8b-8192",
+        "mixtral-8x7b-32768",
+        "gemma-7b-it"
+    ])
     display_model_info(model)
-    
-    # Save chat history button with enhanced styling
+
     if st.sidebar.button("💾 Save Chat History", use_container_width=True):
         save_chat_history()
-    
-    # Statistics section
+
     st.sidebar.markdown("---")
-    st.sidebar.markdown('<div class="sidebar-header">📊 Session Stats</div>', unsafe_allow_html=True)
     st.sidebar.metric("Chat Messages", len(st.session_state.chat_history))
     st.sidebar.metric("Selected Model", model.split('-')[0].title())
-    
-    # Create tabs with enhanced styling
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "💬 Interactive Chat", 
-        "🔍 Static Analysis", 
-        "🛡️ Vulnerability Analysis",
-        "📚 Security Resources"
-    ])
-    
-    # Chat Tab
-    with tab1:
-        st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
-        st.header("💬 Chat with Advitiya")
-        st.markdown("Ask me anything about cybersecurity, vulnerability analysis, secure coding practices, or threat assessment.")
-        
-        user_input = st.text_area(
-            "Your Security Question:", 
-            height=150,
-            placeholder="e.g., How can I secure my REST API against common attacks?",
-            help="Enter your security-related query here"
-        )
-        
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
-            if st.button("🚀 Send Message", key="chat_send", use_container_width=True):
-                if not api_key:
-                    st.error("⚠️ Please provide your Groq API Key in the sidebar.")
-                elif user_input:
-                    with st.spinner("🤔 Advitiya is thinking..."):
-                        response = fetch_groq_response(user_input, api_key, model)
-                        
-                        st.session_state.chat_history.append({
-                            "query": user_input, 
-                            "response": response,
-                            "model": model,
-                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                        })
-                        
-                        # Display response with enhanced formatting
-                        st.markdown("### 🤖 Advitiya's Response:")
-                        st.markdown(response)
-        
-        with col2:
-            if st.button("🗑️ Clear Chat", use_container_width=True):
-                st.session_state.chat_history = []
-                st.success("Chat history cleared!")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
 
-    # Static Analysis Tab
-    with tab2:
-        st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
-        st.header("🔍 Static Code Analysis")
-        st.markdown("Upload or paste your code for comprehensive security analysis and vulnerability detection.")
-        
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            language = st.selectbox(
-                "Programming Language", 
-                ["Python", "JavaScript", "Java", "C++", "C#", "PHP", "Ruby", "Go", "Rust", "TypeScript", "Kotlin", "Swift", "Other"]
-            )
-        
-        with col2:
-            analysis_type = st.selectbox(
-                "Analysis Type",
-                ["Security Vulnerabilities", "Code Quality", "Performance Issues", "Best Practices", "Complete Analysis"]
-            )
-        
-        code = st.text_area(
-            "Code for Analysis:", 
-            height=300, 
-            placeholder="Paste your code here for security analysis...",
-            help="Paste your code here for comprehensive security analysis"
-        )
-        
-        if st.button("🔎 Analyze Code", use_container_width=True):
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "💬 Interactive Chat",
+        "🔍 Static Analysis",
+        "🛡️ Vulnerability Analysis",
+        "📚 Security Resources",
+        "🧪 URL Safety Checker"
+    ])
+
+    # --- Tab 1: Chat ---
+    with tab1:
+        st.header("💬 Chat with Advitiya")
+        user_input = st.text_area("Your Security Question:", height=150)
+        if st.button("🚀 Send Message", key="chat_send"):
             if not api_key:
-                st.error("⚠️ Please provide your Groq API Key in the sidebar.")
+                st.error("⚠️ Please provide your Groq API Key.")
+            elif user_input:
+                with st.spinner("🤔 Thinking..."):
+                    response = fetch_groq_response(user_input, api_key, model)
+                    st.session_state.chat_history.append({
+                        "query": user_input,
+                        "response": response,
+                        "model": model,
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    st.markdown("### 🤖 Advitiya's Response:")
+                    st.markdown(response)
+        if st.button("🗑️ Clear Chat"):
+            st.session_state.chat_history = []
+            st.success("Chat history cleared!")
+
+    # --- Tab 2: Static Code Analysis ---
+    with tab2:
+        st.header("🔍 Static Code Analysis")
+        language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C++", "C#", "PHP", "Go", "Other"])
+        analysis_type = st.selectbox("Analysis Type", ["Security Vulnerabilities", "Code Quality", "Performance Issues", "Best Practices", "Complete Analysis"])
+        code = st.text_area("Code for Analysis:", height=300)
+        if st.button("🔎 Analyze Code"):
+            if not api_key:
+                st.error("⚠️ Please provide your Groq API Key.")
             elif code:
-                with st.spinner("🔍 Analyzing code for vulnerabilities..."):
+                with st.spinner("Analyzing..."):
                     result = perform_static_analysis(language, code, api_key, model)
                     st.markdown("### 📊 Analysis Results:")
                     st.markdown(result)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Vulnerability Analysis Tab
+
+    # --- Tab 3: Vulnerability Analysis ---
     with tab3:
-        st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.header("🛡️ Vulnerability Analysis")
-        st.markdown("Analyze scan results, logs, and security reports for comprehensive vulnerability assessment.")
-        
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            scan_type = st.selectbox(
-                "Scan Type", 
-                [
-                    "Nmap Network Scan", 
-                    "Nikto Web Scan", 
-                    "OWASP ZAP Report", 
-                    "Burp Suite Results", 
-                    "Nessus Scan", 
-                    "OpenVAS Report",
-                    "Custom Security Log", 
-                    "Network Packet Analysis", 
-                    "Web Application Scan", 
-                    "Container Security Scan", 
-                    "Cloud Security Assessment",
-                    "Penetration Test Report"
-                ]
-            )
-        
-        with col2:
-            output_format = st.selectbox(
-                "Report Format",
-                ["Detailed Report", "Executive Summary", "Technical Details", "Remediation Focus"]
-            )
-        
-        scan_data = st.text_area(
-            "Scan Data/Results:", 
-            height=300, 
-            placeholder="Paste your scan results, logs, or security data here...",
-            help="Paste your scan results or log data here for analysis"
-        )
-        
-        if st.button("🔍 Analyze Vulnerabilities", use_container_width=True):
+        scan_type = st.selectbox("Scan Type", ["Nmap Network Scan", "OWASP ZAP Report", "Nessus Scan", "Custom Log"])
+        output_format = st.selectbox("Report Format", ["Detailed Report", "Executive Summary", "Technical Details", "Remediation Focus"])
+        scan_data = st.text_area("Scan Data/Results:", height=300)
+        if st.button("🔍 Analyze Vulnerabilities"):
             if not api_key:
-                st.error("⚠️ Please provide your Groq API Key in the sidebar.")
+                st.error("⚠️ Please provide your Groq API Key.")
             elif scan_data:
-                with st.spinner("🔍 Analyzing security vulnerabilities..."):
+                with st.spinner("Analyzing..."):
                     result = perform_vuln_analysis(scan_type, scan_data, api_key, model)
                     st.markdown("### 🎯 Vulnerability Assessment Results:")
                     st.markdown(result)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Security Resources Tab
+
+    # --- Tab 4: Security Resources ---
     with tab4:
-        st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
         st.header("📚 Security Resources & Best Practices")
-        
-        col1, col2 = st.columns([1, 1])
-        
-        with col1:
-            st.markdown("""
-            ### 🔐 Security Frameworks
-            - **OWASP Top 10** - Web application security risks
-            - **NIST Cybersecurity Framework** - Comprehensive security guidance
-            - **CIS Controls** - Critical security controls
-            - **ISO 27001** - Information security management
-            - **SANS Top 25** - Software security errors
-            """)
-            
-            st.markdown("""
-            ### 🛠️ Security Tools
-            - **Static Analysis**: SonarQube, Checkmarx, Veracode
-            - **Dynamic Analysis**: OWASP ZAP, Burp Suite
-            - **Network Security**: Nmap, Wireshark, Nessus
-            - **Container Security**: Docker Bench, Clair, Twistlock
-            """)
-        
-        with col2:
-            st.markdown("""
-            ### 📖 Learning Resources
-            - [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
-            - [SANS Security Training](https://www.sans.org/)
-            - [Cybersecurity & Infrastructure Security Agency](https://www.cisa.gov/)
-            - [National Vulnerability Database](https://nvd.nist.gov/)
-            """)
-            
-            st.markdown("""
-            ### 🚨 Threat Intelligence
-            - **CVE Database** - Common Vulnerabilities and Exposures
-            - **MITRE ATT&CK** - Adversarial tactics and techniques
-            - **Threat Feeds** - Real-time security intelligence
-            - **Security Advisories** - Vendor security updates
-            """)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Enhanced chat history display
-    if st.session_state.chat_history:
-        st.sidebar.markdown("---")
-        st.sidebar.markdown('<div class="sidebar-header">📚 Recent Conversations</div>', unsafe_allow_html=True)
-        
-        for idx, chat in enumerate(reversed(st.session_state.chat_history[-5:])):  # Show last 5 conversations
-            with st.sidebar.expander(f"💬 Chat {len(st.session_state.chat_history) - idx}", expanded=False):
-                st.markdown(f"**🤖 Model:** {chat.get('model', 'Unknown')}")
-                st.markdown(f"**⏰ Time:** {chat.get('timestamp', 'Unknown')}")
-                st.markdown("**❓ Query:**")
-                st.info(chat["query"][:100] + "..." if len(chat["query"]) > 100 else chat["query"])
-                st.markdown("**✅ Response:**")
-                st.success(chat["response"][:150] + "..." if len(chat["response"]) > 150 else chat["response"])
+        st.markdown("### 🔐 Security Frameworks")
+        st.markdown("- OWASP Top 10\n- NIST Cybersecurity Framework\n- CIS Controls\n- ISO 27001\n- SANS Top 25")
+        st.markdown("### 🛠️ Tools")
+        st.markdown("- Static: SonarQube, Checkmarx\n- Dynamic: ZAP, Burp Suite\n- Network: Nmap, Nessus")
+        st.markdown("### 📖 Learning")
+        st.markdown("[OWASP Guide](https://owasp.org/), [SANS](https://sans.org/), [CISA](https://cisa.gov/)")
+
+    # --- Tab 5: URL Safety Checker ---
+    with tab5:
+        st.header("🧪 Malicious URL Detector")
+        url_input = st.text_input("🔗 Enter a URL", placeholder="e.g., http://example-login.com")
+        if st.button("🚦 Check URL"):
+            if not url_input:
+                st.error("❗ Please enter a valid URL.")
+            elif url_model is None:
+                st.error("⚠️ Model not loaded. Please ensure 'malicious_url_model.pkl' exists.")
+            else:
+                try:
+                    features = [extract_url_features(url_input)]
+                    prediction = url_model.predict(features)[0]
+                    label_map = {0: "BENIGN", 1: "DEFACEMENT", 2: "MALWARE", 3: "PHISHING"}
+                    verdict = label_map.get(prediction, "UNKNOWN")
+                    if verdict == "BENIGN":
+                        st.success("✅ Safe: The URL appears to be **benign**.")
+                    else:
+                        st.error(f"⚠️ Warning: This URL appears to be **{verdict}**.")
+                except Exception as ex:
+                    st.error(f"❌ Error during prediction: {ex}")
 
 if __name__ == "__main__":
     main()
