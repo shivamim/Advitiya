@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 from rich.markdown import Markdown
 from typing import Any
 from groq import Groq
-from feature import FeatureExtraction
 
 # ----------------- Load ENV -----------------
 load_dotenv()
@@ -121,6 +120,22 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
     except Exception as e:
         return f"Error: {str(e)}"
 
+# ----------------- Feature Extraction Inline -----------------
+class FeatureExtraction:
+    def __init__(self, url):
+        self.url = url
+
+    def getFeaturesList(self):
+        features = []
+        features.append(len(self.url))
+        features.append(int(self.url.startswith("https")))
+        features.append(self.url.count("."))
+        features.append(int(bool(re.search(r'\d+\.\d+\.\d+\.\d+', self.url))))
+        features.append(int(any(word in self.url.lower() for word in ["login", "secure", "update", "verify", "account", "bank", "free", "click"])))
+        ext = tldextract.extract(self.url)
+        features.append(len(ext.domain))
+        return features
+
 # ----------------- App Main -----------------
 def main():
     load_custom_css()
@@ -162,7 +177,7 @@ def main():
             else:
                 try:
                     obj = FeatureExtraction(url)
-                    x = np.array(obj.getFeaturesList()).reshape(1, 30)
+                    x = np.array(obj.getFeaturesList()).reshape(1, -1)
                     safe_domains = ["google.com", "facebook.com", "netflix.com"]
                     parsed = tldextract.extract(url)
                     domain = f"{parsed.domain}.{parsed.suffix}"
