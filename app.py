@@ -26,10 +26,17 @@ if not os.path.exists(MODEL_FILE):
     with st.spinner("⬇️ Downloading model from Google Drive..."):
         gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
 
+# ----------------- Load Model Globally -----------------
+url_model = None
+try:
+    url_model = joblib.load(MODEL_FILE)
+except Exception as e:
+    print(f"⚠️ Could not load model '{MODEL_FILE}': {e}")
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
+
 # ----------------- Custom CSS -----------------
 def load_custom_css():
     st.markdown("""
@@ -197,6 +204,8 @@ def extract_url_features(url):
     ext = tldextract.extract(url)
     features["domain_length"] = len(ext.domain)
     return list(features.values())
+
+
 # ----------------- Analysis Helpers -----------------
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
     try:
