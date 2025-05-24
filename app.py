@@ -19,8 +19,8 @@ import gdown
 load_dotenv()
 
 # ----------------- Download Model if Needed -----------------
-MODEL_URL = "https://drive.google.com/uc?id=1-HdH3uhKGCzvTXzHY4RCthoFAv0I-sPl"
-MODEL_FILE = "malicious_model.pkl"
+MODEL_URL = "https://drive.google.com/uc?id=10DB7M-rxu5518XUphJQEOdoS3CYVbuc1"
+MODEL_FILE = "model.pkl"
 
 if not os.path.exists(MODEL_FILE):
     with st.spinner("⬇️ Downloading model from Google Drive..."):
