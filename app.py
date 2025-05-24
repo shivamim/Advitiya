@@ -19,7 +19,7 @@ import gdown
 load_dotenv()
 
 # ----------------- Download Model if Needed -----------------
-MODEL_URL = "https://drive.google.com/uc?id=143Et7ju96CgnsBj8aOHToqNVAhP4mEfY"
+MODEL_URL = "https://drive.google.com/uc?id=1tX08fRLbefWOoy6QHG8xTCFJ4JAtL7-o"
 MODEL_FILE = "malicious_url_model.pkl"
 
 if not os.path.exists(MODEL_FILE):
