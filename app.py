@@ -41,91 +41,119 @@ if 'chat_history' not in st.session_state:
 def load_custom_css():
     st.markdown("""
     <style>
-        /* Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
         html, body, .main, .stApp {
+            background: #ffffff !important;
+            color: #000000 !important;
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #fff;
         }
 
-        /* Hero Section */
+        /* Hero Header */
         .main-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
             border-radius: 20px;
             padding: 2rem;
             margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
-            animation: fadeIn 1s ease-in;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            animation: fadeIn 1s ease-in-out;
         }
 
         .main-title {
-            font-size: 3rem;
-            font-family: 'Orbitron', sans-serif;
-            color: #00ffff;
-            text-shadow: 0 0 8px #00ffff, 0 0 20px #00ffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #000000;
         }
 
         .main-subtitle {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 300;
-            color: #ccc;
+            color: #444444;
         }
 
-        /* Glassmorphism Cards */
+        /* Glass-style Cards */
         .analysis-card {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 2rem;
             margin: 1rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            border: 1px solid #dddddd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
             animation: fadeIn 0.8s ease-in-out;
         }
 
-        /* Button Glow */
+        /* Stylish Buttons */
         .stButton > button {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             color: white;
             font-weight: 600;
-            border-radius: 30px;
+            border-radius: 25px;
             border: none;
             padding: 10px 25px;
-            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+            font-size: 1rem;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .stButton > button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px #00ffff;
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
         }
 
-        /* Tabs Design */
+        /* Tabs */
         .stTabs [data-baseweb="tab-list"] {
-            background: rgba(255,255,255,0.05);
+            background: #f2f2f2;
             border-radius: 12px;
             padding: 0.5rem;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid #ddd;
         }
 
         .stTabs [data-baseweb="tab"] {
             font-weight: 500;
             font-size: 1rem;
             padding: 1rem 1.5rem;
-            border-radius: 12px;
-            background: transparent;
-            color: #ffffff;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #000000;
         }
 
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
-            color: #000;
-            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+            background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+            color: white !important;
+        }
+
+        /* Inputs */
+        input, textarea, select {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #ccc !important;
+            border-radius: 8px !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #888 !important;
+        }
+
+        /* Sidebar */
+        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
+            background: #f9f9f9 !important;
+            color: #000000 !important;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar-header {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #000000 !important;
+        }
+
+        /* Metric text */
+        .stMetric label {
+            color: #000000 !important;
         }
 
         /* Animations */
@@ -134,47 +162,22 @@ def load_custom_css():
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
+        .fade-in {
+            animation: fadeIn 0.6s ease-in-out;
         }
 
         .pulse {
             animation: pulse 2s infinite;
         }
 
-        /* Inputs and Selects */
-        input, textarea, select {
-            background: rgba(255,255,255,0.1) !important;
-            color: white !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-            border-radius: 8px !important;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: #ccc !important;
-        }
-
-        /* Sidebar */
-        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
-            background: rgba(255,255,255,0.03) !important;
-            color: #fff !important;
-            border-right: 1px solid #333;
-        }
-
-        .sidebar-header {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: #00ffff !important;
-        }
-
-        /* Metrics */
-        .stMetric label {
-            color: #00ffff !important;
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
         }
     </style>
     """, unsafe_allow_html=True)
+
 
 # ----------------- Display Header -----------------
 def display_hero_section():
