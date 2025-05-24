@@ -6,3 +6,11 @@ streamlit
 rich
 requests
 langchain-community
+streamlit
+gdown
+joblib
+tldextract
+scikit-learn
+pandas
+rich
+python-dotenv
