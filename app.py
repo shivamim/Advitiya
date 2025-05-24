@@ -41,59 +41,137 @@ if 'chat_history' not in st.session_state:
 def load_custom_css():
     st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-        .main, .stApp, .block-container {
-            background: #ffffff !important;
+        /* Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@300;400;600&display=swap');
+
+        html, body, .main, .stApp {
             font-family: 'Poppins', sans-serif;
-            color: #000000 !important;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
         }
+
+        /* Hero Section */
         .main-header {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 2rem;
             margin-bottom: 2rem;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            animation: fadeIn 1s ease-in;
         }
+
         .main-title {
             font-size: 3rem;
-            font-weight: 700;
-            color: #000000;
-            text-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffff;
+            text-shadow: 0 0 8px #00ffff, 0 0 20px #00ffff;
         }
+
         .main-subtitle {
-            font-size: 1.2rem;
-            color: #333;
+            font-size: 1.1rem;
             font-weight: 300;
-            line-height: 1.6;
+            color: #ccc;
         }
-        .stTabs [data-baseweb="tab"] {
-            background: #fff;
-            border-radius: 10px;
-            font-weight: 500;
-            color: #000;
-            border: 1px solid #ccc;
-            padding: 1rem 2rem;
+
+        /* Glassmorphism Cards */
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            animation: fadeIn 0.8s ease-in-out;
         }
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            color: white;
-        }
+
+        /* Button Glow */
         .stButton > button {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
             color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 0.75rem 2rem;
             font-weight: 600;
-            font-size: 1rem;
+            border-radius: 30px;
+            border: none;
+            padding: 10px 25px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
             transition: all 0.3s ease;
         }
+
         .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: scale(1.05);
+            box-shadow: 0 0 25px #00ffff;
+        }
+
+        /* Tabs Design */
+        .stTabs [data-baseweb="tab-list"] {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: transparent;
+            color: #ffffff;
+        }
+
+        .stTabs [aria-selected="true"] {
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            color: #000;
+            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Inputs and Selects */
+        input, textarea, select {
+            background: rgba(255,255,255,0.1) !important;
+            color: white !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            border-radius: 8px !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #ccc !important;
+        }
+
+        /* Sidebar */
+        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
+            background: rgba(255,255,255,0.03) !important;
+            color: #fff !important;
+            border-right: 1px solid #333;
+        }
+
+        .sidebar-header {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #00ffff !important;
+        }
+
+        /* Metrics */
+        .stMetric label {
+            color: #00ffff !important;
         }
     </style>
     """, unsafe_allow_html=True)
