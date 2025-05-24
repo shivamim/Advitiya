@@ -15,7 +15,13 @@ import tldextract
 import joblib
 import numpy as np
 from feature import FeatureExtraction
-from convert import convertion
+
+# ----------------- Human-readable explanation -----------------
+def convertion(url, prediction):
+    if prediction == 1:
+        return f"The URL '{url}' appears to be **safe** and legitimate."
+    else:
+        return f"⚠️ The URL '{url}' looks **suspicious** and might be a phishing attempt."
 
 # ----------------- Load ENV -----------------
 load_dotenv()
