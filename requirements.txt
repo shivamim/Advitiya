@@ -1,41 +1,31 @@
-# Core App Framework
-streamlit
+angchain
 python-dotenv
-gdown
-
-# AI/LLM Support
-langchain
-langchain-community
 huggingface-hub
 groq
-
-# ML Essentials
-pycaret==3.0.0
-scikit-learn==1.0.2
-pandas==2.1.4
+streamlit
+rich
+requests
+langchain-community
+streamlit
+gdown
 joblib
 tldextract
+scikit-learn
+pandas
+rich
+python-dotenv
+streamlit
+gdown
+tldextract
+joblib
+groq
+pycaret
 httpx
 python-whois
-requests
-
-# Visualization + Utilities
-matplotlib==3.7.5
-plotly==5.21.0
-pillow
-rich
-colorama
-tqdm
-
-# Optional (used in your featureExtractor)
-statsmodels
-scipy==1.11.4
-numba==0.57.0
-llvmlite==0.40.1
-lightgbm==4.1.0
-pyod
-retrying
-category-encoders
-patsy
-
-
+scikit-learn
+pandas
+streamlit
+gdown
+tldextract
+joblib
+groq
