@@ -13,25 +13,20 @@ import time
 import re
 import tldextract
 import joblib
-import gdown
+import numpy as np
+from feature import FeatureExtraction
+from convert import convertion
 
 # ----------------- Load ENV -----------------
 load_dotenv()
 
-# ----------------- Download Model if Needed -----------------
-MODEL_URL = "https://drive.google.com/uc?id=1cpKoE1MGVKBtgHWV3KJnwFPK0LgfNKSC"
-MODEL_FILE = "random_forest_model.pkl"
+# ----------------- Load Phishing Model -----------------
+phishing_model = None
 
-if not os.path.exists(MODEL_FILE):
-    with st.spinner("⬇️ Downloading model from Google Drive..."):
-        gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
-
-# ----------------- Load Model Globally -----------------
-url_model = None
 try:
-    url_model = joblib.load(MODEL_FILE)
+    phishing_model = joblib.load("model/phishing.pkl")
 except Exception as e:
-    print(f"⚠️ Could not load model '{MODEL_FILE}': {e}")
+    print(f"⚠️ Could not load phishing model: {e}")
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
@@ -42,14 +37,11 @@ def load_custom_css():
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
         html, body, .main, .stApp {
             background: #ffffff !important;
             color: #000000 !important;
             font-family: 'Poppins', sans-serif;
         }
-
-        /* Hero Header */
         .main-header {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(15px);
@@ -61,32 +53,16 @@ def load_custom_css():
             box-shadow: 0 8px 24px rgba(0,0,0,0.05);
             animation: fadeIn 1s ease-in-out;
         }
-
         .main-title {
             font-size: 2.5rem;
             font-weight: 700;
             color: #000000;
         }
-
         .main-subtitle {
             font-size: 1.2rem;
             font-weight: 300;
             color: #444444;
         }
-
-        /* Glass-style Cards */
-        .analysis-card {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 2rem;
-            margin: 1rem 0;
-            border: 1px solid #dddddd;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            animation: fadeIn 0.8s ease-in-out;
-        }
-
-        /* Stylish Buttons */
         .stButton > button {
             background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             color: white;
@@ -98,86 +74,12 @@ def load_custom_css():
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
-
         .stButton > button:hover {
             transform: scale(1.03);
             box-shadow: 0 0 15px rgba(0,0,0,0.15);
         }
-
-        /* Tabs */
-        .stTabs [data-baseweb="tab-list"] {
-            background: #f2f2f2;
-            border-radius: 12px;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-        }
-
-        .stTabs [data-baseweb="tab"] {
-            font-weight: 500;
-            font-size: 1rem;
-            padding: 1rem 1.5rem;
-            border-radius: 10px;
-            background: #ffffff;
-            color: #000000;
-        }
-
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
-            color: white !important;
-        }
-
-        /* Inputs */
-        input, textarea, select {
-            background: #ffffff !important;
-            color: #000000 !important;
-            border: 1px solid #ccc !important;
-            border-radius: 8px !important;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: #888 !important;
-        }
-
-        /* Sidebar */
-        .css-1d391kg, .css-17lntkn, .css-1cypcdb {
-            background: #f9f9f9 !important;
-            color: #000000 !important;
-            border-right: 1px solid #ddd;
-        }
-
-        .sidebar-header {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: #000000 !important;
-        }
-
-        /* Metric text */
-        .stMetric label {
-            color: #000000 !important;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.6s ease-in-out;
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
-        }
     </style>
     """, unsafe_allow_html=True)
-
 
 # ----------------- Display Header -----------------
 def display_hero_section():
@@ -191,22 +93,7 @@ def display_hero_section():
     </div>
     """, unsafe_allow_html=True)
 
-
-# ----------------- Feature Extraction -----------------
-def extract_url_features(url):
-    features = {}
-    features["url_length"] = len(url)
-    features["https"] = int(url.startswith("https"))
-    features["num_dots"] = url.count(".")
-    features["has_ip"] = int(bool(re.search(r'\d+\.\d+\.\d+\.\d+', url)))
-    features["has_suspicious_words"] = int(any(word in url.lower() for word in [
-        "login", "secure", "update", "verify", "account", "bank", "free", "click"]))
-    ext = tldextract.extract(url)
-    features["domain_length"] = len(ext.domain)
-    return list(features.values())
-
-
-# ----------------- Analysis Helpers -----------------
+# ----------------- Groq Integration -----------------
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
     try:
         client = Groq(api_key=api_key)
@@ -225,20 +112,7 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
     except Exception as e:
         return f"Error: {str(e)}"
 
-
-def perform_static_analysis(language_used: str, file_data: str, api_key: str, model: str) -> str:
-    instructions = "Analyze this code for security vulnerabilities, quality issues, bugs, and bad practices."
-    prompt = f"{instructions}\nLanguage: {language_used}\nCode:\n```{language_used}\n{file_data}\n```"
-    return fetch_groq_response(prompt, api_key, model)
-
-
-def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: str) -> str:
-    instructions = "Analyze this vulnerability scan for risks, misconfigurations, and fixes."
-    prompt = f"{instructions}\nScan Type: {scan_type}\nScan Data:\n{scan_data}"
-    return fetch_groq_response(prompt, api_key, model)
-
-
-# ----------------- Main App Logic -----------------
+# ----------------- Main App -----------------
 def main():
     load_custom_css()
     display_hero_section()
@@ -247,12 +121,8 @@ def main():
     st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
     api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key")
     model = st.sidebar.selectbox("AI Model", [
-        "deepseek-r1-distill-llama-70b",
-        "llama-3.1-8b-instant",
-        "llama3-8b-8192",
-        "mixtral-8x7b-32768",
-        "gemma-7b-it"
-    ])
+        "deepseek-r1-distill-llama-70b", "llama-3.1-8b-instant", "llama3-8b-8192",
+        "mixtral-8x7b-32768", "gemma-7b-it"])
     if st.sidebar.button("💾 Save Chat History"):
         with open('chat_history.json', 'w') as f:
             json.dump(st.session_state.chat_history, f)
@@ -263,12 +133,8 @@ def main():
     st.sidebar.metric("Model", model.split('-')[0].title())
 
     # ----------------- Tabs -----------------
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "💬 Chat",
-        "🔍 Static Analysis",
-        "🛡️ Vulnerability Analysis",
-        "📚 Resources",
-        "🧪 URL Safety Checker"
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "💬 Chat", "🔍 Static Analysis", "🛡️ Vulnerability Analysis", "🧪 Phishing URL Checker"
     ])
 
     # ----------------- Tab 1: Chat -----------------
@@ -282,9 +148,7 @@ def main():
                 with st.spinner("Thinking..."):
                     response = fetch_groq_response(user_input, api_key, model)
                     st.session_state.chat_history.append({
-                        "query": user_input,
-                        "response": response,
-                        "model": model,
+                        "query": user_input, "response": response, "model": model,
                         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                     })
                     st.markdown("### 🤖 Advitiya's Response:")
@@ -300,7 +164,8 @@ def main():
                 st.error("Please provide your Groq API key.")
             elif code:
                 with st.spinner("Analyzing code..."):
-                    result = perform_static_analysis(language, code, api_key, model)
+                    prompt = f"Analyze this code for security vulnerabilities and issues.\nLanguage: {language}\nCode:\n```{language}\n{code}\n```"
+                    result = fetch_groq_response(prompt, api_key, model)
                     st.markdown("### 📊 Analysis Results:")
                     st.markdown(result)
 
@@ -314,43 +179,36 @@ def main():
                 st.error("Please provide your Groq API key.")
             elif scan_data:
                 with st.spinner("Analyzing vulnerabilities..."):
-                    result = perform_vuln_analysis(scan_type, scan_data, api_key, model)
+                    prompt = f"Analyze this {scan_type} scan output for vulnerabilities:\n{scan_data}"
+                    result = fetch_groq_response(prompt, api_key, model)
                     st.markdown("### 🎯 Vulnerability Report:")
                     st.markdown(result)
 
-    # ----------------- Tab 4: Security Resources -----------------
+    # ----------------- Tab 4: Phishing URL Detection -----------------
     with tab4:
-        st.header("📚 Cybersecurity Resources")
-        st.markdown("""
-        - 🔐 [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-        - 🛡️ [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
-        - ✅ [CIS Critical Controls](https://www.cisecurity.org/controls/)
-        - 🧠 [ISO/IEC 27001](https://www.iso.org/isoiec-27001-information-security.html)
-        - 🐞 [SANS Top 25 Software Errors](https://www.sans.org/top25-software-errors/)
-        """)
+        st.header("🧪 Phishing URL Detection")
+        url_input = st.text_input("🔗 Enter a URL to check")
 
-    # ----------------- Tab 5: URL Safety Checker -----------------
-    with tab5:
-        st.header("🧪 Malicious URL Detector")
-        url_input = st.text_input("🔗 Enter URL to check", placeholder="http://example.com")
-        if st.button("🚦 Check URL"):
+        if st.button("🚦 Predict"):
             if not url_input:
-                st.error("Please enter a valid URL.")
-            elif url_model is None:
-                st.error("⚠️ Model not loaded. Please check the file.")
+                st.warning("Please enter a URL.")
+            elif phishing_model is None:
+                st.error("⚠️ Phishing model not loaded.")
             else:
                 try:
-                    features = [extract_url_features(url_input)]
-                    prediction = url_model.predict(features)[0]
-                    label_map = {0: "BENIGN", 1: "DEFACEMENT", 2: "MALWARE", 3: "PHISHING"}
-                    result = label_map.get(prediction, "UNKNOWN")
-                    if result == "BENIGN":
-                        st.success("✅ Safe: This URL appears to be benign.")
+                    obj = FeatureExtraction(url_input)
+                    x = np.array(obj.getFeaturesList()).reshape(1, 30)
+                    y_pred = phishing_model.predict(x)[0]
+                    y_proba = phishing_model.predict_proba(x)[0]
+                    name = convertion(url_input, int(y_pred))
+                    confidence = y_proba[1] if y_pred == 1 else y_proba[0]
+                    if y_pred == 1:
+                        st.success(f"✅ Legitimate URL (Confidence: {confidence*100:.2f}%)")
                     else:
-                        st.error(f"⚠️ Warning: This URL appears to be {result}.")
+                        st.error(f"⚠️ Phishing URL Detected (Confidence: {confidence*100:.2f}%)")
+                    st.markdown(f"**Explanation:** {name}")
                 except Exception as e:
                     st.error(f"Error during prediction: {e}")
-
 
 # ----------------- Launch App -----------------
 if __name__ == "__main__":
