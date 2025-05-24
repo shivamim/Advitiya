@@ -4,45 +4,40 @@ st.set_page_config(page_title="Advitiya AI - Security Assistant", page_icon="⚡
 
 import os
 import json
-import requests
-from rich.markdown import Markdown
-from typing import Any
-from dotenv import load_dotenv
-from groq import Groq
 import time
 import re
-import tldextract
 import joblib
 import numpy as np
+import tldextract
 import gdown
+from dotenv import load_dotenv
+from rich.markdown import Markdown
+from typing import Any
+from groq import Groq
 from feature import FeatureExtraction
 
-# ----------------- Human-readable explanation -----------------
+# ----------------- Load ENV -----------------
+load_dotenv()
+
+# ----------------- Helper Function -----------------
 def convertion(url, prediction):
     if prediction == 1:
         return f"The URL '{url}' appears to be **safe** and legitimate."
     else:
         return f"⚠️ The URL '{url}' looks **suspicious** and might be a phishing attempt."
 
-# ----------------- Load ENV -----------------
-load_dotenv()
-
-# ----------------- Download and Load Phishing Model -----------------
-phishing_model = None
-MODEL_URL = "https://drive.google.com/uc?id=1vaRj11y7I727hZ7YhmFYrRbyNUX5Jzf1"
-MODEL_FILE = "newmodel.pkl"
+# ----------------- Download Model from Google Drive -----------------
+MODEL_URL = "https://drive.google.com/uc?id=1cpKoE1MGVKBtgHWV3KJnwFPK0LgfNKSC"
+MODEL_FILE = "malicious_url_model.pkl"
 
 if not os.path.exists(MODEL_FILE):
-    with st.spinner("⬇️ Downloading model from Google Drive..."):
+    with st.spinner("⬇️ Downloading phishing detection model from Google Drive..."):
         gdown.download(MODEL_URL, MODEL_FILE, quiet=False)
 
-if os.path.exists(MODEL_FILE):
-    try:
-        phishing_model = joblib.load(MODEL_FILE)
-        print("✅ Model loaded successfully from Google Drive.")
-    except Exception as e:
-        phishing_model = None
-        print("❌ Failed to load model:", e)
+try:
+    phishing_model = joblib.load(MODEL_FILE)
+except Exception as e:
+    phishing_model = None
 
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
@@ -54,30 +49,25 @@ def load_custom_css():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
         html, body, .main, .stApp {
-            background: #ffffff !important;
-            color: #000000 !important;
+            background: #f5f7fa !important;
             font-family: 'Poppins', sans-serif;
         }
         .main-header {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
+            background: linear-gradient(90deg, #4ECDC4, #556270);
+            color: white;
+            border-radius: 15px;
             padding: 2rem;
-            margin-bottom: 2rem;
             text-align: center;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-            animation: fadeIn 1s ease-in-out;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
         .main-title {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
-            color: #000000;
+            margin-bottom: 0.5rem;
         }
         .main-subtitle {
             font-size: 1.2rem;
             font-weight: 300;
-            color: #444444;
         }
         .stButton > button {
             background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
@@ -87,24 +77,27 @@ def load_custom_css():
             border: none;
             padding: 10px 25px;
             font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
         .stButton > button:hover {
             transform: scale(1.03);
-            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .metric-container {
+            padding: 1rem;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
     </style>
     """, unsafe_allow_html=True)
 
-# ----------------- Display Header -----------------
+# ----------------- Display Hero -----------------
 def display_hero_section():
     st.markdown("""
     <div class="main-header">
         <div class="main-title">🔐 Advitiya AI</div>
         <div class="main-subtitle">
-            Advanced AI-Powered Security Assistant<br>
-            <strong>Developed by Team XAI</strong>
+            Advanced AI-Powered Security Assistant by Team XAI
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -115,7 +108,7 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
         client = Groq(api_key=api_key)
         completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are Advitiya, an advanced AI security assistant."},
+                {"role": "system", "content": "You are Advitiya, a helpful AI for cybersecurity and security analysis."},
                 {"role": "user", "content": prompt}
             ],
             model=model,
@@ -128,104 +121,63 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
     except Exception as e:
         return f"Error: {str(e)}"
 
-# ----------------- Main App -----------------
+# ----------------- App Main -----------------
 def main():
     load_custom_css()
     display_hero_section()
 
-    # Sidebar info
-    if phishing_model:
-        st.sidebar.success("✅ Model loaded successfully.")
-    else:
-        st.sidebar.warning("⚠️ Model not loaded.")
-
-    st.sidebar.markdown('<div class="sidebar-header">⚙️ Configuration Panel</div>', unsafe_allow_html=True)
-    api_key = st.sidebar.text_input("Groq API Key", type="password", placeholder="Enter your Groq API Key")
+    st.sidebar.header("⚙️ Configuration")
+    api_key = st.sidebar.text_input("Groq API Key", type="password")
     model = st.sidebar.selectbox("AI Model", [
-        "deepseek-r1-distill-llama-70b", "llama-3.1-8b-instant", "llama3-8b-8192",
-        "mixtral-8x7b-32768", "gemma-7b-it"])
-    if st.sidebar.button("💾 Save Chat History"):
-        with open('chat_history.json', 'w') as f:
-            json.dump(st.session_state.chat_history, f)
-        st.sidebar.success("Chat history saved!")
-
+        "deepseek-r1-distill-llama-70b", "llama3-8b-8192", "mixtral-8x7b-32768", "gemma-7b-it"])
     st.sidebar.markdown("---")
     st.sidebar.metric("Messages", len(st.session_state.chat_history))
-    st.sidebar.metric("Model", model.split('-')[0].title())
+    st.sidebar.metric("Model", model)
 
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "💬 Chat", "🔍 Static Analysis", "🛡️ Vulnerability Analysis", "🧪 Phishing URL Checker"
-    ])
+    tab1, tab2 = st.tabs(["💬 Chat Assistant", "🧪 Phishing URL Detector"])
 
     with tab1:
         st.header("💬 Ask Security Questions")
         user_input = st.text_area("Your Question:", height=150)
-        if st.button("🚀 Send Message", key="chat_send"):
+        if st.button("🚀 Send"):
             if not api_key:
-                st.error("Please provide your Groq API key.")
+                st.error("Please enter Groq API key.")
             elif user_input:
-                with st.spinner("Thinking..."):
+                with st.spinner("Generating response..."):
                     response = fetch_groq_response(user_input, api_key, model)
                     st.session_state.chat_history.append({
-                        "query": user_input, "response": response, "model": model,
-                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                        "query": user_input, "response": response, "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                     })
-                    st.markdown("### 🤖 Advitiya's Response:")
+                    st.markdown("### 🤖 Response:")
                     st.markdown(response)
 
     with tab2:
-        st.header("🔍 Static Code Analysis")
-        language = st.selectbox("Select Language", ["Python", "JavaScript", "C++", "Java", "Go", "Other"])
-        code = st.text_area("Paste your code here", height=300)
-        if st.button("🔎 Analyze Code"):
-            if not api_key:
-                st.error("Please provide your Groq API key.")
-            elif code:
-                with st.spinner("Analyzing code..."):
-                    prompt = f"Analyze this code for security vulnerabilities and issues.\nLanguage: {language}\nCode:\n```{language}\n{code}\n```"
-                    result = fetch_groq_response(prompt, api_key, model)
-                    st.markdown("### 📊 Analysis Results:")
-                    st.markdown(result)
-
-    with tab3:
-        st.header("🛡️ Vulnerability Scan Review")
-        scan_type = st.selectbox("Scan Type", ["Nmap", "ZAP", "Nessus", "Custom Log"])
-        scan_data = st.text_area("Paste scan output or data", height=300)
-        if st.button("🔍 Analyze Vulnerabilities"):
-            if not api_key:
-                st.error("Please provide your Groq API key.")
-            elif scan_data:
-                with st.spinner("Analyzing vulnerabilities..."):
-                    prompt = f"Analyze this {scan_type} scan output for vulnerabilities:\n{scan_data}"
-                    result = fetch_groq_response(prompt, api_key, model)
-                    st.markdown("### 🎯 Vulnerability Report:")
-                    st.markdown(result)
-
-    with tab4:
-        st.header("🧪 Phishing URL Detection")
-        url_input = st.text_input("🔗 Enter a URL to check")
-
-        if st.button("🚦 Predict"):
-            if not url_input:
-                st.warning("Please enter a URL.")
+        st.header("🧪 Malicious URL Detection")
+        url = st.text_input("🔗 Enter a URL to check", placeholder="https://example.com")
+        if st.button("🚦 Check URL"):
+            if not url:
+                st.warning("Please enter a valid URL.")
             elif phishing_model is None:
-                st.warning("⚠️ Phishing model not loaded.")
+                st.error("⚠️ Model not loaded. Please check the file.")
             else:
                 try:
-                    obj = FeatureExtraction(url_input)
+                    obj = FeatureExtraction(url)
                     x = np.array(obj.getFeaturesList()).reshape(1, 30)
-                    y_pred = phishing_model.predict(x)[0]
-                    y_proba = phishing_model.predict_proba(x)[0]
-                    name = convertion(url_input, int(y_pred))
-                    confidence = y_proba[1] if y_pred == 1 else y_proba[0]
-                    if y_pred == 1:
-                        st.success(f"✅ Legitimate URL (Confidence: {confidence*100:.2f}%)")
+                    safe_domains = ["google.com", "facebook.com", "netflix.com"]
+                    domain = tldextract.extract(url).domain + "." + tldextract.extract(url).suffix
+                    if domain in safe_domains:
+                        prediction = 1
                     else:
-                        st.error(f"⚠️ Phishing URL Detected (Confidence: {confidence*100:.2f}%)")
-                    st.markdown(f"**Explanation:** {name}")
-                except Exception as e:
-                    st.error(f"Error during prediction: {e}")
+                        prediction = phishing_model.predict(x)[0]
+                    label_map = {1: "✅ Safe", -1: "⚠️ Phishing"}
+                    result = label_map.get(prediction, "Unknown")
 
-# ----------------- Launch App -----------------
+                    st.subheader(result)
+                    st.markdown(convertion(url, prediction))
+
+                except Exception as e:
+                    st.error(f"Error during prediction: {str(e)}")
+
+# ----------------- Launch -----------------
 if __name__ == "__main__":
     main()
