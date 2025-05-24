@@ -10,7 +10,6 @@ streamlit
 gdown
 joblib
 tldextract
-scikit-learn
 pandas
 rich
 python-dotenv
@@ -22,7 +21,7 @@ groq
 pycaret
 httpx
 python-whois
-scikit-learn
+scikit-learn==0.23.2
 pandas
 streamlit
 gdown
