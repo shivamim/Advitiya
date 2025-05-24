@@ -21,7 +21,7 @@ groq
 pycaret
 httpx
 python-whois
-scikit-learn==0.23.2
+scikit-learn
 pandas
 streamlit
 gdown
