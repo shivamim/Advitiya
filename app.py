@@ -10,7 +10,6 @@ from featureExtractor import featureExtraction
 # Load environment variables if .env exists
 load_dotenv()
 
-----
 
 
 # ------------------ Load PyCaret Model ------------------
