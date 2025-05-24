@@ -36,7 +36,6 @@ except Exception as e:
 # ----------------- Session State -----------------
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
-
 # ----------------- Custom CSS -----------------
 def load_custom_css():
     st.markdown("""
@@ -191,6 +190,7 @@ def display_hero_section():
     </div>
     """, unsafe_allow_html=True)
 
+
 # ----------------- Feature Extraction -----------------
 def extract_url_features(url):
     features = {}
@@ -203,7 +203,6 @@ def extract_url_features(url):
     ext = tldextract.extract(url)
     features["domain_length"] = len(ext.domain)
     return list(features.values())
-
 # ----------------- Analysis Helpers -----------------
 def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192") -> str:
     try:
@@ -223,15 +222,19 @@ def fetch_groq_response(prompt: str, api_key: str, model: str = "llama3-8b-8192"
     except Exception as e:
         return f"Error: {str(e)}"
 
+
 def perform_static_analysis(language_used: str, file_data: str, api_key: str, model: str) -> str:
     instructions = "Analyze this code for security vulnerabilities, quality issues, bugs, and bad practices."
     prompt = f"{instructions}\nLanguage: {language_used}\nCode:\n```{language_used}\n{file_data}\n```"
     return fetch_groq_response(prompt, api_key, model)
 
+
 def perform_vuln_analysis(scan_type: str, scan_data: str, api_key: str, model: str) -> str:
     instructions = "Analyze this vulnerability scan for risks, misconfigurations, and fixes."
     prompt = f"{instructions}\nScan Type: {scan_type}\nScan Data:\n{scan_data}"
     return fetch_groq_response(prompt, api_key, model)
+
+
 # ----------------- Main App Logic -----------------
 def main():
     load_custom_css()
@@ -344,6 +347,7 @@ def main():
                         st.error(f"⚠️ Warning: This URL appears to be {result}.")
                 except Exception as e:
                     st.error(f"Error during prediction: {e}")
+
 
 # ----------------- Launch App -----------------
 if __name__ == "__main__":
