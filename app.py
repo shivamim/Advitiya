@@ -26,7 +26,7 @@ def convertion(url, prediction):
         return f"⚠️ The URL '{url}' looks **suspicious** and might be a phishing attempt."
 
 # ----------------- Download Model from Google Drive -----------------
-MODEL_URL = "https://drive.google.com/uc?id=1cpKoE1MGVKBtgHWV3KJnwFPK0LgfNKSC"
+MODEL_URL = "https://drive.google.com/uc?id=1tX08fRLbefWOoy6QHG8xTCFJ4JAtL7-o"
 MODEL_FILE = "malicious_url_model.pkl"
 
 if not os.path.exists(MODEL_FILE):
